@@ -456,7 +456,7 @@ namespace CURIOsity
 
                 hallRightPanelApertures.Clear();
                 hallRightPanelApertures = data.RightPanelApertures;
-                
+
                 // empty and refill corresponding DataGridViews
                 hallStagecraftDataGridView.Rows.Clear();
                 foreach (var pair in hallStagecraftEquipmentPositions)
@@ -779,7 +779,7 @@ namespace CURIOsity
 
                         bimStagecraftEquipmentPositions.Add(piece.Name, int.Parse(position.NominalValue));
                     }*/
-            }
+                }
 
                 // empty and refill corresponding DataGridViews
                 bimStagecraftDataGridView.Rows.Clear();
@@ -1002,6 +1002,164 @@ namespace CURIOsity
             }
         }
 
+        // auxiliary form element layout methods
+        private void LayOutElements()
+        {
+            // layout constants
+            int topMargin = 16;
+            int groupTitleHeight = 30; // height reserved for group titles
+            int titleSpacing = 6; // distance between group title and DataGridViews
+            int labelHeight = 20;
+            int labelSpacing = 4; // distance between DataGridView labels and DataGridViews
+            int groupSpacing = 32; // distance between data groups
+            int separatorHeight = 2; // height of the separator line
+            int buttonHeight = loadHallButton.Height;
+            int buttonBottomMargin = 48;
+            int DataGridViewSpacing = 12; // distance between DataGridViews
+            int startX = 20; // starting positions for data groups
+
+            // computed values
+            int availableWidth = this.ClientSize.Width - 40;
+            int DataGridViewWidth = (availableWidth - 2 * DataGridViewSpacing) / 3;
+            int hallGroupHeight = groupTitleHeight + titleSpacing + labelHeight + labelSpacing;
+            int bimGroupHeight = groupTitleHeight + titleSpacing + labelHeight + labelSpacing;
+            int separatorMargin = groupSpacing / 2 + separatorHeight + 8;
+            int totalDataGridViewHeight = this.ClientSize.Height - topMargin - hallGroupHeight - bimGroupHeight - separatorMargin - buttonHeight - buttonBottomMargin;
+            int DataGridViewHeight = totalDataGridViewHeight / 2; //each group takes half of the available space
+
+            // place elements
+            PlaceGroupsAndSeparator(topMargin, groupTitleHeight, titleSpacing, labelHeight, labelSpacing, groupSpacing, separatorHeight, startX, availableWidth, hallGroupHeight, DataGridViewHeight);
+            PlaceDataGridViews(topMargin, groupTitleHeight, titleSpacing, labelHeight, labelSpacing, DataGridViewSpacing, startX, DataGridViewWidth, DataGridViewHeight, groupSpacing, separatorHeight);
+            PlaceButtons(startX, DataGridViewWidth, DataGridViewSpacing, buttonHeight);
+
+            // adapt DataGridView columns to available width
+            FitColumnsToWidth(hallStagecraftDataGridView);
+            FitColumnsToWidth(hallLeftPanelsDataGridView);
+            FitColumnsToWidth(hallRightPanelsDataGridView);
+            FitColumnsToWidth(bimStagecraftDataGridView);
+            FitColumnsToWidth(bimLeftPanelsDataGridView);
+            FitColumnsToWidth(bimRightPanelsDataGridView);
+        }
+
+        private void PlaceGroupsAndSeparator(int topMargin, int groupTitleHeight, int titleSpacing, int labelHeight, int labelSpacing, int groupSpacing, int separatorHeight, int startX, int availableWidth, int hallGroupHeight, int DataGridViewHeight)
+        {
+            // hall group title
+            hallDataGroupLabel.Left = (this.ClientSize.Width - hallDataGroupLabel.Width) / 2;
+            hallDataGroupLabel.Top = topMargin;
+            int hallDataGridViewY = topMargin + groupTitleHeight + titleSpacing + labelHeight + labelSpacing;
+
+            // horizontal separator
+            int separatorY = hallDataGridViewY + DataGridViewHeight + groupSpacing / 2;
+            groupSeparator.Left = startX;
+            groupSeparator.Top = separatorY;
+            groupSeparator.Width = availableWidth;
+            groupSeparator.Height = separatorHeight;
+
+            // BIM group title
+            int bimStartY = separatorY + separatorHeight + 8;
+            bimDataGroupLabel.Left = (this.ClientSize.Width - bimDataGroupLabel.Width) / 2;
+            bimDataGroupLabel.Top = bimStartY;
+        }
+
+        private void PlaceDataGridViews(int topMargin, int groupTitleHeight, int titleSpacing, int labelHeight, int labelSpacing, int DataGridViewSpacing, int startX, int DataGridViewWidth, int DataGridViewHeight, int groupSpacing, int separatorHeight)
+        {
+            // hall DataGridView labels
+            int hallLabelY = topMargin + groupTitleHeight + titleSpacing;
+            hallStagecraftDataGridViewLabel.Left = startX;
+            hallStagecraftDataGridViewLabel.Top = hallLabelY;
+            hallLeftPanelsDataGridViewLabel.Left = startX + DataGridViewWidth + DataGridViewSpacing;
+            hallLeftPanelsDataGridViewLabel.Top = hallLabelY;
+            hallRightPanelsDataGridViewLabel.Left = startX + (DataGridViewWidth + DataGridViewSpacing) * 2;
+            hallRightPanelsDataGridViewLabel.Top = hallLabelY;
+
+            // hall DataGridViews
+            int hallDataGridViewY = hallLabelY + labelHeight + labelSpacing;
+            hallStagecraftDataGridView.Left = startX;
+            hallStagecraftDataGridView.Top = hallDataGridViewY;
+            hallStagecraftDataGridView.Width = DataGridViewWidth;
+            hallStagecraftDataGridView.Height = DataGridViewHeight;
+
+            hallLeftPanelsDataGridView.Left = hallLeftPanelsDataGridViewLabel.Left;
+            hallLeftPanelsDataGridView.Top = hallDataGridViewY;
+            hallLeftPanelsDataGridView.Width = DataGridViewWidth;
+            hallLeftPanelsDataGridView.Height = DataGridViewHeight;
+
+            hallRightPanelsDataGridView.Left = hallRightPanelsDataGridViewLabel.Left;
+            hallRightPanelsDataGridView.Top = hallDataGridViewY;
+            hallRightPanelsDataGridView.Width = DataGridViewWidth;
+            hallRightPanelsDataGridView.Height = DataGridViewHeight;
+
+            // BIM DataGridView labels
+            int separatorY = hallDataGridViewY + DataGridViewHeight + groupSpacing / 2;
+            int bimStartY = separatorY + separatorHeight + 8;
+            int bimLabelY = bimStartY + groupTitleHeight + titleSpacing;
+            bimStagecraftDataGridViewLabel.Left = startX;
+            bimStagecraftDataGridViewLabel.Top = bimLabelY;
+            bimLeftPanelsDataGridViewLabel.Left = startX + DataGridViewWidth + DataGridViewSpacing;
+            bimLeftPanelsDataGridViewLabel.Top = bimLabelY;
+            bimRightPanelsDataGridViewLabel.Left = startX + (DataGridViewWidth + DataGridViewSpacing) * 2;
+            bimRightPanelsDataGridViewLabel.Top = bimLabelY;
+
+            // BIM DataGridViews
+            int bimDataGridViewY = bimLabelY + labelHeight + labelSpacing;
+            bimStagecraftDataGridView.Left = startX;
+            bimStagecraftDataGridView.Top = bimDataGridViewY;
+            bimStagecraftDataGridView.Width = DataGridViewWidth;
+            bimStagecraftDataGridView.Height = DataGridViewHeight;
+
+            bimLeftPanelsDataGridView.Left = bimLeftPanelsDataGridViewLabel.Left;
+            bimLeftPanelsDataGridView.Top = bimDataGridViewY;
+            bimLeftPanelsDataGridView.Width = DataGridViewWidth;
+            bimLeftPanelsDataGridView.Height = DataGridViewHeight;
+
+            bimRightPanelsDataGridView.Left = bimRightPanelsDataGridViewLabel.Left;
+            bimRightPanelsDataGridView.Top = bimDataGridViewY;
+            bimRightPanelsDataGridView.Width = DataGridViewWidth;
+            bimRightPanelsDataGridView.Height = DataGridViewHeight;
+        }
+
+        private void PlaceButtons(int startX, int DataGridViewWidth, int DataGridViewSpacing, int buttonHeight)
+        {
+            // horizontally centering buttons and keeping them one beside the other at the bottom of the form
+            int buttonSpacing = 16; // distance between buttons
+            int buttonsTotalWidth = loadHallButton.Width + buttonSpacing + loadBimButton.Width + buttonSpacing + updateBimButton.Width;
+            int buttonsStartX = (this.ClientSize.Width - buttonsTotalWidth) / 2;
+
+            int dataGridViewsBottom = bimStagecraftDataGridView.Top + bimStagecraftDataGridView.Height;
+            int tabPageBottom = movingElementDataTab.Height; // bottom end of TabPage
+            int buttonsY = dataGridViewsBottom + (tabPageBottom - dataGridViewsBottom - buttonHeight) / 2; // bottons in between DataGridViews end and form bottom end
+
+            loadHallButton.Left = buttonsStartX;
+            loadHallButton.Top = buttonsY;
+
+            loadBimButton.Left = buttonsStartX + loadHallButton.Width + buttonSpacing;
+            loadBimButton.Top = buttonsY;
+
+            updateBimButton.Left = loadBimButton.Left + loadBimButton.Width + buttonSpacing;
+            updateBimButton.Top = buttonsY;
+        }
+
+        private void FitColumnsToWidth(DataGridView dgv)
+        {
+            if (dgv.ColumnCount == 0)
+                return;
+
+            int totalGridWidth = dgv.ClientSize.Width;
+            int scrollbarWidth = dgv.Controls.OfType<VScrollBar>().FirstOrDefault()?.Visible == true ? SystemInformation.VerticalScrollBarWidth : 0;
+            int availableGridWidth = totalGridWidth - scrollbarWidth;
+
+            // uniform column width
+            int columnWidth = availableGridWidth / dgv.ColumnCount;
+            for (int i = 0; i < dgv.ColumnCount; i++)
+            {
+                // last column takes the remaining space, to avoid approximation errors
+                if (i == dgv.ColumnCount - 1)
+                    dgv.Columns[i].Width = availableGridWidth - columnWidth * (dgv.ColumnCount - 1);
+                else
+                    dgv.Columns[i].Width = columnWidth;
+            }
+        }
+
 
         // override standard form methods
         protected override void OnLoad(EventArgs e)
@@ -1097,155 +1255,15 @@ namespace CURIOsity
             rightPanelMapping.Add("PD.024", "Right Panel 24"); // hypothetical BIM element name
             rightPanelMapping.Add("PD.025", "Right Panel 25"); // hypothetical BIM element name
             rightPanelMapping.Add("PD.026", "Right Panel 26"); // hypothetical BIM element name
+
+            // lay form elements out
+            LayOutElements();
         }
 
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-
-            // Layout constants
-            int DataGridViewSpacing = 12; // distance between DataGridViews
-            int groupSpacing = 32;   // distance between data groups
-            int titleSpacing = 6;    // distance between group title and DataGridViews
-            int labelSpacing = 4;    // distance between DataGridView labels and DataGridViews
-            int groupTitleHeight = 30; // height reserved for group titles
-            int separatorHeight = 2; // height of the separator line
-
-            // compute available width/height for DataGridViews
-            int availableWidth = this.ClientSize.Width - 40; // 20px for left and right frame
-            int DataGridViewWidth = (availableWidth - 2 * DataGridViewSpacing) / 3;
-
-            // compute dynamically DataGridView height to fill the available space vertically
-            int topMargin = 16;
-            int labelHeight = 20;
-            int hallGroupHeight = groupTitleHeight + titleSpacing + labelHeight + labelSpacing;
-            int bimGroupHeight = groupTitleHeight + titleSpacing + labelHeight + labelSpacing;
-            int separatorMargin = groupSpacing / 2 + separatorHeight + 8;
-            int buttonHeight = loadHallButton.Height;
-            int buttonBottomMargin = 48;
-            int totalDataGridViewHeight = this.ClientSize.Height - topMargin - hallGroupHeight - bimGroupHeight - separatorMargin - buttonHeight - buttonBottomMargin;
-
-            // Each group takes half of the available space
-            int DataGridViewHeight = totalDataGridViewHeight / 2;
-
-            // Starting positions for data groups
-            int startX = 20;
-            int hallStartY = topMargin;
-            int hallLabelY = hallStartY + groupTitleHeight + titleSpacing;
-            int hallDataGridViewY = hallLabelY + labelHeight + labelSpacing;
-
-            int separatorY = hallDataGridViewY + DataGridViewHeight + groupSpacing / 2;
-            int bimStartY = separatorY + separatorHeight + 8;
-            int bimLabelY = bimStartY + groupTitleHeight + titleSpacing;
-            int bimDataGridViewY = bimLabelY + labelHeight + labelSpacing;
-
-            // hall group title
-            hallDataGroupLabel.Left = (this.ClientSize.Width - hallDataGroupLabel.Width) / 2;
-            hallDataGroupLabel.Top = hallStartY;
-
-            // hall DataGridView labels
-            hallStagecraftDataGridViewLabel.Left = startX;
-            hallStagecraftDataGridViewLabel.Top = hallLabelY;
-            hallLeftPanelsDataGridViewLabel.Left = startX + DataGridViewWidth + DataGridViewSpacing;
-            hallLeftPanelsDataGridViewLabel.Top = hallLabelY;
-            hallRightPanelsDataGridViewLabel.Left = startX + (DataGridViewWidth + DataGridViewSpacing) * 2;
-            hallRightPanelsDataGridViewLabel.Top = hallLabelY;
-
-            // hall DataGridViews
-            hallStagecraftDataGridView.Left = startX;
-            hallStagecraftDataGridView.Top = hallDataGridViewY;
-            hallStagecraftDataGridView.Width = DataGridViewWidth;
-            hallStagecraftDataGridView.Height = DataGridViewHeight;
-
-            hallLeftPanelsDataGridView.Left = hallLeftPanelsDataGridViewLabel.Left;
-            hallLeftPanelsDataGridView.Top = hallDataGridViewY;
-            hallLeftPanelsDataGridView.Width = DataGridViewWidth;
-            hallLeftPanelsDataGridView.Height = DataGridViewHeight;
-
-            hallRightPanelsDataGridView.Left = hallRightPanelsDataGridViewLabel.Left;
-            hallRightPanelsDataGridView.Top = hallDataGridViewY;
-            hallRightPanelsDataGridView.Width = DataGridViewWidth;
-            hallRightPanelsDataGridView.Height = DataGridViewHeight;
-
-            // place and scale the horizontal separating line dynamically
-            groupSeparator.Left = startX;
-            groupSeparator.Top = separatorY;
-            groupSeparator.Width = availableWidth;
-            groupSeparator.Height = separatorHeight;
-
-            // BIM group title
-            bimDataGroupLabel.Left = (this.ClientSize.Width - bimDataGroupLabel.Width) / 2;
-            bimDataGroupLabel.Top = bimStartY;
-
-            // BIM DataGridView labels
-            bimStagecraftDataGridViewLabel.Left = startX;
-            bimStagecraftDataGridViewLabel.Top = bimLabelY;
-            bimLeftPanelsDataGridViewLabel.Left = startX + DataGridViewWidth + DataGridViewSpacing;
-            bimLeftPanelsDataGridViewLabel.Top = bimLabelY;
-            bimRightPanelsDataGridViewLabel.Left = startX + (DataGridViewWidth + DataGridViewSpacing) * 2;
-            bimRightPanelsDataGridViewLabel.Top = bimLabelY;
-
-            // BIM DataGridViews
-            bimStagecraftDataGridView.Left = startX;
-            bimStagecraftDataGridView.Top = bimDataGridViewY;
-            bimStagecraftDataGridView.Width = DataGridViewWidth;
-            bimStagecraftDataGridView.Height = DataGridViewHeight;
-
-            bimLeftPanelsDataGridView.Left = bimLeftPanelsDataGridViewLabel.Left;
-            bimLeftPanelsDataGridView.Top = bimDataGridViewY;
-            bimLeftPanelsDataGridView.Width = DataGridViewWidth;
-            bimLeftPanelsDataGridView.Height = DataGridViewHeight;
-
-            bimRightPanelsDataGridView.Left = bimRightPanelsDataGridViewLabel.Left;
-            bimRightPanelsDataGridView.Top = bimDataGridViewY;
-            bimRightPanelsDataGridView.Width = DataGridViewWidth;
-            bimRightPanelsDataGridView.Height = DataGridViewHeight;
-
-
-            // method to keep columns fitted to the DataGridView width when resizing
-            void FitColumnsToWidth(DataGridView dgv)
-            {
-                if (dgv.ColumnCount == 0)
-                    return;
-
-                int totalGridWidth = dgv.ClientSize.Width;
-                int scrollbarWidth = dgv.Controls.OfType<VScrollBar>().FirstOrDefault()?.Visible == true ? SystemInformation.VerticalScrollBarWidth : 0;
-                int availableGridWidth = totalGridWidth - scrollbarWidth;
-
-                // uniform column width
-                int columnWidth = availableGridWidth / dgv.ColumnCount;
-                for (int i = 0; i < dgv.ColumnCount; i++)
-                {
-                    // last column takes the remaining space, to avoid approximation errors
-                    if (i == dgv.ColumnCount - 1)
-                        dgv.Columns[i].Width = availableGridWidth - columnWidth * (dgv.ColumnCount - 1);
-                    else
-                        dgv.Columns[i].Width = columnWidth;
-                }
-            }
-
-            FitColumnsToWidth(hallStagecraftDataGridView);
-            FitColumnsToWidth(hallLeftPanelsDataGridView);
-            FitColumnsToWidth(hallRightPanelsDataGridView);
-            FitColumnsToWidth(bimStagecraftDataGridView);
-            FitColumnsToWidth(bimLeftPanelsDataGridView);
-            FitColumnsToWidth(bimRightPanelsDataGridView);
-
-
-            // horizontally centering buttons "Load hall file", "Load BIM file" and "Update BIM file" and keeping them one beside the other at the bottom of the form
-            int buttonSpacing = 16; // distance between buttons
-            int buttonsTotalWidth = loadHallButton.Width + buttonSpacing + loadBimButton.Width + buttonSpacing + updateBimButton.Width;
-            int buttonsStartX = (this.ClientSize.Width - buttonsTotalWidth) / 2;
-            int buttonsY = this.ClientSize.Height - loadHallButton.Height - 24; // 24 pixels from the bottom of the form
-
-            loadHallButton.Left = buttonsStartX;
-            loadHallButton.Top = buttonsY;
-            
-            loadBimButton.Left = buttonsStartX + loadHallButton.Width + buttonSpacing;
-            loadBimButton.Top = buttonsY;
-
-            updateBimButton.Left = loadBimButton.Left + loadBimButton.Width + buttonSpacing;
-            updateBimButton.Top = buttonsY;
+            LayOutElements();
         }
     }
 }

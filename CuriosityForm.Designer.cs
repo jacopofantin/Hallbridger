@@ -6,6 +6,11 @@ namespace CURIOsity
     {
         // variable declaration
 
+        // moving element data and acoustic data tabs
+        private System.Windows.Forms.TabControl mainTabControl;
+        private System.Windows.Forms.TabPage movingElementDataTab;
+        private System.Windows.Forms.TabPage acousticDataTab;
+
         // hall data group title
         private System.Windows.Forms.Label hallDataGroupLabel;
 
@@ -43,6 +48,7 @@ namespace CURIOsity
 
         // "Update BIM file" button
         private System.Windows.Forms.Button updateBimButton;
+
 
         private void InitializeComponent()
         {
@@ -85,6 +91,11 @@ namespace CURIOsity
 
             // "Update BIM file" button creation
             this.updateBimButton = new System.Windows.Forms.Button();
+
+            // main TabControl and TabPages creation
+            this.mainTabControl = new System.Windows.Forms.TabControl();
+            this.movingElementDataTab = new System.Windows.Forms.TabPage();
+            this.acousticDataTab = new System.Windows.Forms.TabPage();
 
             this.SuspendLayout();
 
@@ -263,31 +274,41 @@ namespace CURIOsity
             this.updateBimButton.UseVisualStyleBackColor = true;
             this.updateBimButton.Click += new System.EventHandler(this.UpdateBimButton_OnClick);
 
+            // main TabControl and TabPages initialization
+            this.mainTabControl.Controls.Add(this.movingElementDataTab);
+            this.mainTabControl.Controls.Add(this.acousticDataTab);
+            this.mainTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.movingElementDataTab.Text = "Moving element data";
+            this.acousticDataTab.Text = "Acoustic data";
+
             // Form initialization
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.hallDataGroupLabel);
-            this.Controls.Add(this.hallStagecraftDataGridViewLabel);
-            this.Controls.Add(this.hallLeftPanelsDataGridViewLabel);
-            this.Controls.Add(this.hallRightPanelsDataGridViewLabel);
-            this.Controls.Add(this.hallStagecraftDataGridView);
-            this.Controls.Add(this.hallLeftPanelsDataGridView);
-            this.Controls.Add(this.hallRightPanelsDataGridView);
-            this.Controls.Add(this.groupSeparator);
-            this.Controls.Add(this.bimDataGroupLabel);
-            this.Controls.Add(this.bimStagecraftDataGridViewLabel);
-            this.Controls.Add(this.bimLeftPanelsDataGridViewLabel);
-            this.Controls.Add(this.bimRightPanelsDataGridViewLabel);
-            this.Controls.Add(this.bimStagecraftDataGridView);
-            this.Controls.Add(this.bimLeftPanelsDataGridView);
-            this.Controls.Add(this.bimRightPanelsDataGridView);
-            this.Controls.Add(this.loadHallButton);
-            this.Controls.Add(this.loadBimButton);
-            this.Controls.Add(this.updateBimButton);
+            this.Controls.Add(this.mainTabControl);
             this.Name = "CURIOsity";
             this.Text = "CURIOsity";
             this.ResumeLayout(false);
             this.PerformLayout();
+
+            // add form elements to respective TabPages
+            this.movingElementDataTab.Controls.Add(this.hallDataGroupLabel);
+            this.movingElementDataTab.Controls.Add(this.hallStagecraftDataGridViewLabel);
+            this.movingElementDataTab.Controls.Add(this.hallStagecraftDataGridView);
+            this.movingElementDataTab.Controls.Add(this.hallLeftPanelsDataGridViewLabel);
+            this.movingElementDataTab.Controls.Add(this.hallLeftPanelsDataGridView);
+            this.movingElementDataTab.Controls.Add(this.hallRightPanelsDataGridViewLabel);
+            this.movingElementDataTab.Controls.Add(this.hallRightPanelsDataGridView);
+            this.movingElementDataTab.Controls.Add(this.groupSeparator);
+            this.movingElementDataTab.Controls.Add(this.bimDataGroupLabel);
+            this.movingElementDataTab.Controls.Add(this.bimStagecraftDataGridViewLabel);
+            this.movingElementDataTab.Controls.Add(this.bimStagecraftDataGridView);
+            this.movingElementDataTab.Controls.Add(this.bimLeftPanelsDataGridViewLabel);
+            this.movingElementDataTab.Controls.Add(this.bimLeftPanelsDataGridView);
+            this.movingElementDataTab.Controls.Add(this.bimRightPanelsDataGridViewLabel);
+            this.movingElementDataTab.Controls.Add(this.bimRightPanelsDataGridView);
+            this.movingElementDataTab.Controls.Add(this.loadHallButton);
+            this.movingElementDataTab.Controls.Add(this.loadBimButton);
+            this.movingElementDataTab.Controls.Add(this.updateBimButton);
         }
     }
 }
