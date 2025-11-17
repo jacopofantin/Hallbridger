@@ -19,9 +19,13 @@ Location (relative to directory where the main CURIOsity folder is placed in the
 Structure to follow:
 
 Sections are defined in square brackets
+
 Each section controls a timer for automatic data reading and updating
+
 Each section has a number of key-value pairs separated by equal sign =
+
 Values are read as strings but they don't need double quotes to be defined (just write the values straight, see .ini file for example)
+
 The keys (i.e. the customizable parameters for each timer) are the following:
 - Directory: specifies the path of the directory where the file to be read/updated relative to this timer is placed, see default value for each timer in the corresponding section of the present file)
 - FileName: specifies the name (including file extension) of the file to be read/updated relative to this timer, see default value for each timer in the corresponding section of the present file)
@@ -29,6 +33,7 @@ The keys (i.e. the customizable parameters for each timer) are the following:
 - Active: boolean value indicating whether the timer is active or not (write true if active, false if inactive)
 
 First section (i.e. first timer) is about the text file containing data coming out of CURIO (section [TextFileCheck])
+
 Second section (i.e. second timer) is about the BIM file containing the 3D model of the theater hall (section [BimFileCheck])
 
 
@@ -43,6 +48,7 @@ INPUT TEXT FILE (CURIO data)
 - Location (default, can be changed through .ini file, see corresponding section of the present file; path is relative to directory where the main CURIOsity folder is placed in the theater PC): CURIOsity\IO_files\
 
 The file consists of three blocks of data, one block per moving element group and each with one line per moving element
+
 Each of these lines must begin following the format: "XX.###   *****", where:
 - XX is an alphabetic identifier for the piece of equipment/panel array (e.g. "PS" for "Pannello Sinistra", "PD" for "Pannello Destra")
 - ### is a numeric identifier for the piece of equipment/panel array
@@ -51,10 +57,15 @@ Each of these lines must begin following the format: "XX.###   *****", where:
 File structure to follow:
 
 First 3 lines have no theater information
+
 Following 13 lines (block 1) contain information about stagecraft equipment positions
+
 Following line has no information
+
 Following 26 lines (block 2) contain information about pivoting panel arrays on the left wall (alphabetic ID: PS ("Pannello Sinistro"))
+
 Following line has no information
+
 Following 26 lines (block 3) contain information about pivoting panel arrays on the right wall (alphabetic ID: PD ("Pannello Destro"))
 
 
