@@ -11,7 +11,9 @@ This readme file describes how the TXT and IFC file should be structured in orde
 CONFIGURATION FILE (to customize app behavior)
 
 Name: conf
+
 Extension: .ini
+
 Location (relative to directory where the main CURIOsity folder is placed in the theater PC): CURIOsity\Configuration\
 
 Structure to follow:
