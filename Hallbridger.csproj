@@ -114,14 +114,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CuriosityForm.cs" />
-    <Compile Include="CuriosityForm.Designer.cs">
-      <DependentUpon>CuriosityForm.cs</DependentUpon>
+    <Compile Include="HallbridgerForm.cs" />
+    <Compile Include="HallbridgerForm.Designer.cs">
+      <DependentUpon>HallbridgerForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="CuriosityProgram.cs" />
+    <Compile Include="HallbridgerProgram.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="CuriosityForm.resx">
-      <DependentUpon>CuriosityForm.cs</DependentUpon>
+    <EmbeddedResource Include="HallbridgerForm.resx">
+      <DependentUpon>HallbridgerForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -150,9 +150,9 @@
     <Content Include="icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CURIOsity-API\CURIOsity-API.csproj">
+    <ProjectReference Include="..\CURIOsity-API\Hallbridger-API.csproj">
       <Project>{c06feb8b-5340-49ca-a645-c7e584403d63}</Project>
-      <Name>CURIOsity-API</Name>
+      <Name>Hallbridger-API</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
