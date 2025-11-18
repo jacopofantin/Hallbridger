@@ -4,16 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace CURIOsity
+namespace Hallbridger
 {
-    internal static class CuriosityProgram
+    internal static class HallbridgerProgram
     {
         [STAThread]
         static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new CuriosityForm());
+            Application.Run(new HallbridgerForm());
         }
     }
 }
