@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.0.3 Chrome/140.0.7339.249 Electron/38.7.0 Safari/537.36" version="29.0.3">
   <diagram name="Page-1" id="9361dd3d-8414-5efd-6122-117bd74ce7a7">
-    <mxGraphModel dx="1389" dy="1635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1.5" pageWidth="826" pageHeight="1169" background="none" math="0" shadow="0">
+    <mxGraphModel dx="1026" dy="1410" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1.5" pageWidth="826" pageHeight="1169" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -202,8 +202,8 @@
             <mxPoint x="189.82" y="1347" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="cu1wZ8aWU_hbBI_JcY3f-55" value="sd Automatically load hall data" style="rounded=1;fontStyle=1;fillColor=light-dark(#543300,#543300);strokeColor=none;fontColor=light-dark(#FFFFFF,#FFFFFF);" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1">
-          <mxGeometry x="62.82" y="1111" width="187.18" height="30" as="geometry" />
+        <mxCell id="cu1wZ8aWU_hbBI_JcY3f-55" value="sd Automatically load and view hall data" style="rounded=1;fontStyle=1;fillColor=light-dark(#543300,#543300);strokeColor=none;fontColor=light-dark(#FFFFFF,#FFFFFF);" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1">
+          <mxGeometry x="62.82" y="1111" width="237.18" height="30" as="geometry" />
         </mxCell>
         <mxCell id="cu1wZ8aWU_hbBI_JcY3f-64" value="&lt;font style=&quot;color: light-dark(rgb(255, 255, 255), rgb(255, 255, 255));&quot;&gt;HallDataFileCheckTimer_Tick&lt;/font&gt;" style="html=1;verticalAlign=bottom;startArrow=none;endArrow=block;rounded=0;labelBackgroundColor=none;strokeColor=light-dark(#FFFFFF,#FFFFFF);" parent="J2KfJtG-QG56RKUlHcrJ-41" source="cu1wZ8aWU_hbBI_JcY3f-63" edge="1">
           <mxGeometry relative="1" as="geometry">
@@ -394,8 +394,8 @@
             <mxPoint x="205.1549128274268" y="1734.0111890477026" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="O6us0vEAUML5UE6zGNP8-5" value="sd Manually load hall data" style="rounded=1;fontStyle=1;fillColor=light-dark(#543300,#543300);strokeColor=none;fontColor=light-dark(#FFFFFF,#FFFFFF);" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1">
-          <mxGeometry x="60" y="-620" width="160" height="30" as="geometry" />
+        <mxCell id="O6us0vEAUML5UE6zGNP8-5" value="sd Manually load and view hall data" style="rounded=1;fontStyle=1;fillColor=light-dark(#543300,#543300);strokeColor=none;fontColor=light-dark(#FFFFFF,#FFFFFF);" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1">
+          <mxGeometry x="60" y="-620" width="210" height="30" as="geometry" />
         </mxCell>
         <mxCell id="O6us0vEAUML5UE6zGNP8-6" value="&lt;div style=&quot;margin-top: 70px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(255, 255, 255), rgb(255, 255, 255));&quot;&gt;&amp;lt;&amp;lt;actor&amp;gt;&amp;gt;&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;&lt;font style=&quot;color: light-dark(rgb(255, 255, 255), rgb(255, 255, 255));&quot;&gt;Operator&lt;/font&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};participant=umlActor;strokeColor=light-dark(#FFFFFF,#FFFFFF);fillColor=light-dark(#000000,#000000);" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1">
           <mxGeometry x="110" y="-576.9100000000001" width="25" height="284.91" as="geometry" />
@@ -615,8 +615,8 @@
         <mxCell id="O6us0vEAUML5UE6zGNP8-44" value="" style="shape=umlDestroy;whiteSpace=wrap;html=1;strokeWidth=3;targetShapes=umlLifeline;strokeColor=light-dark(#FFFFFF,#FFFFFF);" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1">
           <mxGeometry x="978" y="939" width="30" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="hkwWFQePFhNiwXgl7_Bo-16" value="sd Manually load 3D model" style="rounded=1;fontStyle=1;fillColor=light-dark(#543300,#543300);strokeColor=none;fontColor=light-dark(#FFFFFF,#FFFFFF);" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1">
-          <mxGeometry x="60" y="3050" width="160" height="30" as="geometry" />
+        <mxCell id="hkwWFQePFhNiwXgl7_Bo-16" value="sd Manually load and view 3D hall" style="rounded=1;fontStyle=1;fillColor=light-dark(#543300,#543300);strokeColor=none;fontColor=light-dark(#FFFFFF,#FFFFFF);" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1">
+          <mxGeometry x="60" y="3050" width="200" height="30" as="geometry" />
         </mxCell>
         <mxCell id="hkwWFQePFhNiwXgl7_Bo-17" value="&lt;div style=&quot;margin-top: 70px;&quot;&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(255, 255, 255), rgb(255, 255, 255));&quot;&gt;&amp;lt;&amp;lt;actor&amp;gt;&amp;gt;&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;&lt;font style=&quot;color: light-dark(rgb(255, 255, 255), rgb(255, 255, 255));&quot;&gt;Operator&lt;/font&gt;" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};participant=umlActor;strokeColor=light-dark(#FFFFFF,#FFFFFF);fillColor=light-dark(#000000,#000000);" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1">
           <mxGeometry x="110" y="3115.09" width="25" height="284.91" as="geometry" />
@@ -808,7 +808,7 @@
         <mxCell id="9U9wIFumCmgdJTTtjzWg-3" value="" style="group" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1" connectable="0">
           <mxGeometry x="240" y="685" width="300" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="9U9wIFumCmgdJTTtjzWg-4" value="&lt;font style=&quot;color: light-dark(rgb(255, 255, 255), rgb(255, 255, 255));&quot;&gt;sd View loaded data&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#36486A,#36486A);strokeColor=light-dark(#FFFFFF,#FFFFFF);" parent="9U9wIFumCmgdJTTtjzWg-3" vertex="1">
+        <mxCell id="9U9wIFumCmgdJTTtjzWg-4" value="&lt;font style=&quot;color: light-dark(rgb(255, 255, 255), rgb(255, 255, 255));&quot;&gt;sd Data visualization&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#36486A,#36486A);strokeColor=light-dark(#FFFFFF,#FFFFFF);" parent="9U9wIFumCmgdJTTtjzWg-3" vertex="1">
           <mxGeometry width="300" height="80" as="geometry" />
         </mxCell>
         <mxCell id="9U9wIFumCmgdJTTtjzWg-5" value="ref" style="rounded=1;fontStyle=1;fillColor=light-dark(#543300,#543300);strokeColor=none;fontColor=light-dark(#FFFFFF,#FFFFFF);" parent="9U9wIFumCmgdJTTtjzWg-3" vertex="1">
@@ -817,7 +817,7 @@
         <mxCell id="9U9wIFumCmgdJTTtjzWg-8" value="" style="group" parent="J2KfJtG-QG56RKUlHcrJ-41" vertex="1" connectable="0">
           <mxGeometry x="150" y="2570" width="300" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="9U9wIFumCmgdJTTtjzWg-9" value="&lt;font style=&quot;color: light-dark(rgb(255, 255, 255), rgb(255, 255, 255));&quot;&gt;sd View loaded data&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#36486A,#36486A);strokeColor=light-dark(#FFFFFF,#FFFFFF);" parent="9U9wIFumCmgdJTTtjzWg-8" vertex="1">
+        <mxCell id="9U9wIFumCmgdJTTtjzWg-9" value="&lt;font style=&quot;color: light-dark(rgb(255, 255, 255), rgb(255, 255, 255));&quot;&gt;sd Data visualization&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#36486A,#36486A);strokeColor=light-dark(#FFFFFF,#FFFFFF);" parent="9U9wIFumCmgdJTTtjzWg-8" vertex="1">
           <mxGeometry width="300" height="80" as="geometry" />
         </mxCell>
         <mxCell id="9U9wIFumCmgdJTTtjzWg-10" value="ref" style="rounded=1;fontStyle=1;fillColor=light-dark(#543300,#543300);strokeColor=none;fontColor=light-dark(#FFFFFF,#FFFFFF);" parent="9U9wIFumCmgdJTTtjzWg-8" vertex="1">
