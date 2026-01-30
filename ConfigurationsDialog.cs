@@ -90,7 +90,7 @@ namespace Hallbridger
             };
             var realHallIntervalInfo = CreateInfoIcon(
                 new Point(realHallFileCheckIntervalLabel.Location.X + realHallFileCheckIntervalLabel.PreferredWidth + 5, realHallFileCheckIntervalLabel.Location.Y),
-                "Time interval between two consecutive file checks.");
+                "Time interval between two consecutive file checks");
             realHallFileCheckGroupBox.Controls.Add(realHallIntervalInfo);
             realHallFileCheckIntervalTextBox = new TextBox
             {
@@ -156,7 +156,7 @@ namespace Hallbridger
             };
             var hall3DIntervalInfo = CreateInfoIcon(
                 new Point(hall3DModelFileCheckIntervalLabel.Location.X + hall3DModelFileCheckIntervalLabel.PreferredWidth + 5, hall3DModelFileCheckIntervalLabel.Location.Y),
-                "Time interval between two consecutive file checks.");
+                "Time interval between two consecutive file checks");
             hall3DModelFileCheckGroupBox.Controls.Add(hall3DIntervalInfo);
             hall3DModelFileCheckIntervalTextBox = new TextBox
             {

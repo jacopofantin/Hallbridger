@@ -99,13 +99,13 @@ namespace Hallbridger
         private System.Windows.Forms.Timer realHallFileCheckTimer;
         private string realHallFileCheckDirectory = "D:\\Dateien\\Hallbridger\\IO_files"; // default directory, can be changed in options menu
         private string realHallFileCheckName = "Fotografia_sala_CURIO.txt"; // default file name, can be changed in options menu
-        private int realHallFileCheckInterval = 10000; // default to 10 seconds, can be changed in options menu
+        private int realHallFileCheckInterval = 1000; // default to 1 second, can be changed in options menu
         private bool realHallFileCheckActive = true; // default to true, can be changed in options menu
 
         private System.Windows.Forms.Timer hall3DModelFileCheckTimer;
         private string hall3DModelFileCheckDirectory = "D:\\Dateien\\Hallbridger\\IO_files"; // default directory, can be changed in options menu
         private string hall3DModelFileCheckName = "Model.ifc"; // default file name, can be changed in options menu
-        private int hall3DModelFileCheckInterval = 10000; // default to 10 seconds, can be changed in options menu
+        private int hall3DModelFileCheckInterval = 1000; // default to 1 second, can be changed in options menu
         private string hall3DModelFileCheckOperation = "Load"; // default to "Load", can be changed to "Update" in options menu
         private bool hall3DModelFileCheckActive = true; // default to true, can be changed in options menu
 
@@ -280,44 +280,16 @@ namespace Hallbridger
                 hall3DModel = IfcStore.Open(filePath);
                 hall3DModelFilePath = filePath;
 
-                // using a temporary copy of the 3D model so the class-level one doesn't get disposed
+                // using a temporary copy of the 3D model so the class-level one doesn't get disposed, otherwise the model would lose some key properties needed by the 3D viewer
                 using (var temp3DModel = IfcStore.Open(filePath))
                 {
-                    /*
-                    // extract the list of stagecraft equipment pieces and panel blocks from the 3D model
-                    var equipmentPieces = temp3DModel.Instances
-                        .OfType<IIfcBuildingElementProxy>()
-                        .Where(p => p.IsTypedBy
-                            .Any(t => t.RelatingType != null && t.RelatingType.Name == "STAGECRAFT EQUIPMENT:STAGECRAFT EQUIPMENT"))
-                        .ToList();
-
-                    var pivotingPanels = temp3DModel.Instances
-                        .OfType<IIfcFurnishingElement>()
-                        .Where(p => p.IsTypedBy
-                            .Any(t => t.RelatingType != null && t.RelatingType.Name == "PANEL BLOCK:PANEL BLOCK"))
-                        .ToList();
-                    */
-                    /*
-                    //extract the panel and its aperture angle
-                    var firstPanel = temp3DModel.Instances
-                        .OfType<IIfcFurnishingElement>()
-                        .FirstOrDefault();
-                    var rotationAngleProperty = (firstPanel?.IsTypedBy
-                        .FirstOrDefault(type => type.RelatingType.Name == "PANEL ROTATION:PANEL ROTATION 60")?.RelatingType as IIfcTypeObject)?
-                        .HasPropertySets.OfType<IIfcPropertySet>()
-                        .FirstOrDefault(pset => pset.Name == "Quote")?
-                        .HasProperties.OfType<IIfcPropertySingleValue>()
-                        .FirstOrDefault(prop => prop.Name == "PANEL ANGLE");
-
-                    Console.WriteLine($"Panel ID: {firstPanel?.GlobalId}, Name: {firstPanel?.Name}, PANEL ANGLE: {rotationAngleProperty?.NominalValue}");
-                    */
-                    // store stagecraft equipment positions and panel apertures in the class-level dictionaries
+                    // extract and store stagecraft equipment positions and panel apertures in the class-level dictionaries
                     foreach (var pair in hall3DModelStagecraftControlUnitsComposition)
                     {
                         var key = pair.Key;
                         var globalIdList = pair.Value;
 
-                        hall3DModelStagecraftEquipmentPositions[key] = Get3DPropertyValue(hall3DModel, globalIdList[0], "PIECE POSITION");
+                        hall3DModelStagecraftEquipmentPositions[key] = Get3DPropertyValue(temp3DModel, globalIdList[0], "PIECE POSITION");
                     }
 
                     foreach (var pair in hall3DModelLeftPanelControlUnitsComposition)
@@ -325,7 +297,7 @@ namespace Hallbridger
                         var key = pair.Key;
                         var globalIdList = pair.Value;
 
-                        hall3DModelLeftPanelApertures[key] = Get3DPropertyValue(hall3DModel, globalIdList[0], "PANEL ANGLE");
+                        hall3DModelLeftPanelApertures[key] = Get3DPropertyValue(temp3DModel, globalIdList[0], "PANEL ANGLE");
                     }
 
                     foreach (var pair in hall3DModelRightPanelControlUnitsComposition)
@@ -333,42 +305,9 @@ namespace Hallbridger
                         var key = pair.Key;
                         var globalIdList = pair.Value;
 
-                        hall3DModelRightPanelApertures[key] = Get3DPropertyValue(hall3DModel, globalIdList[0], "PANEL ANGLE");
-                    }
-                    /*
-                    foreach (var panel in pivotingPanels)
-                    {
-                        var aperture = panel.IsDefinedBy
-                            .Where(r => r.RelatingPropertyDefinition is IIfcPropertySet)
-                            .SelectMany(r => ((IIfcPropertySet)r.RelatingPropertyDefinition).HasProperties)
-                            .OfType<IIfcPropertySingleValue>()
-                            .Where(p => p.Name = "Aperture");
-
-                        hall3DModelLeftPanelApertures.Add(leftPanel.Name, int.Parse(aperture.NominalValue));
+                        hall3DModelRightPanelApertures[key] = Get3DPropertyValue(temp3DModel, globalIdList[0], "PANEL ANGLE");
                     }
 
-                    foreach (var rightPanel in hall3DModelRightPanels)
-                    {
-                        var aperture = rightPanel.IsDefinedBy
-                            .Where(r => r.RelatingPropertyDefinition is IIfcPropertySet)
-                            .SelectMany(r => ((IIfcPropertySet)r.RelatingPropertyDefinition).HasProperties)
-                            .OfType<IIfcPropertySingleValue>()
-                            .Where(p => p.Name = "Aperture");
-
-                        hall3DModelRightPanelApertures.Add(rightPanel.Name, int.Parse(aperture.NominalValue));
-                    }
-
-                    // store stagecraft equipment names as keys and positions as values in the class-level dictionary
-                    foreach (var piece in hall3DModelStagecraftEquipment)
-                    {
-                        var position = piece.IsDefinedBy
-                            .Where(r => r.RelatingPropertyDefinition is IIfcPropertySet)
-                            .SelectMany(r => ((IIfcPropertySet)r.RelatingPropertyDefinition).HasProperties)
-                            .OfType<IIfcPropertySingleValue>()
-                            .Where(p => p.Name == "Position");
-
-                        hall3DModelStagecraftEquipmentPositions.Add(piece.Name, int.Parse(position.NominalValue));
-                    }*/
                     if (realHallStagecraftDataGridView.Rows.Count > 0)
                     {
                         stagecraftDataDiscrepancyHighlightable = true;
@@ -413,37 +352,7 @@ namespace Hallbridger
                     // start a transaction to overwrite the stagecraft equipment positions and panel apertures in the 3D model with those of the real hall
                     using (var hall3DModelUpdate = temp3DModel.BeginTransaction("3D hall update"))
                     {
-                        /*
-                        //extract position property for stagecraft equipment pieces and aperture property for pivoting panels
-                        var equipmentPiecePositions = equipmentPieces
-                            .FirstOrDefault()?.IsDefinedBy
-                            .Where(r => r.RelatingPropertyDefinition is IIfcPropertySet)
-                            .SelectMany(r => ((IIfcPropertySet)r.RelatingPropertyDefinition).HasProperties)
-                            .OfType<IIfcPropertySingleValue>()
-                            .FirstOrDefault(p => p.Name == "PIECE POSITION");
-
-                        var rotationAngleProperties = pivotingPanels
-                            .FirstOrDefault()?.IsDefinedBy
-                            .Where(r => r.RelatingPropertyDefinition is IIfcPropertySet)
-                            .SelectMany(r => ((IIfcPropertySet)r.RelatingPropertyDefinition).HasProperties)
-                            .OfType<IIfcPropertySingleValue>()
-                            .FirstOrDefault(p => p.Name == "PANEL ANGLE");
-
-                        //extract the panel and its aperture angle
-                        var firstPanel = temp3DModel.Instances
-                            .OfType<IIfcFurnishingElement>()
-                            .FirstOrDefault();
-                        var rotationAngleProperty = (firstPanel?.IsTypedBy
-                            .FirstOrDefault(type => type.RelatingType.Name == "PANEL ROTATION:PANEL ROTATION 60")?.RelatingType as IIfcTypeObject)?
-                            .HasPropertySets.OfType<IIfcPropertySet>()
-                            .FirstOrDefault(pset => pset.Name == "Quote")?
-                            .HasProperties.OfType<IIfcPropertySingleValue>()
-                            .FirstOrDefault(prop => prop.Name == "PANEL ANGLE");
-
-                        //writes the new aperture of the panel in the 3D model
-                        rotationAngleProperty.NominalValue = new Xbim.Ifc4.MeasureResource.IfcPlaneAngleMeasure(22.79);
-                        */
-                        // overwrite the stagecraft equipment positions and panel apertures in the 3D model with the loaded real hall data
+                        // overwrite the stagecraft equipment positions and panel apertures in the 3D model with the loaded real hall data (even if some real hall data are missing)
                         foreach (var pair in hall3DModelStagecraftControlUnitsComposition)
                         {
                             var key = pair.Key;
@@ -1027,7 +936,7 @@ namespace Hallbridger
             if (!highlightDataDiscrepanciesCheckBox.Enabled && checkboxRectangle.Contains(e.Location))
             {
                 highlightDataDiscrepanciesToolTip.Show(
-                    "Load at least some of both real and 3D hall data to highlight differences.",
+                    "Load at least some of both real and 3D hall data to highlight differences between them.",
                     movingElementsTab,
                     highlightDataDiscrepanciesCheckBox.Left,
                     highlightDataDiscrepanciesCheckBox.Bottom + 5,
