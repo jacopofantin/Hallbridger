@@ -373,7 +373,7 @@ namespace Hallbridger
             this.highlightDataDiscrepanciesCheckBox.Click += new System.EventHandler(this.HighlightDataDiscrepanciesCheckBox_CheckChanged);
 
             // "Highlight data discrepancies" tooltip initialization
-            UpdateHighlightDataDiscrepanciesCheckBoxState();
+            UpdateDataDiscrepancyHighlightability();
 
             // title for global RT values DataGridView initialization
             this.globalRtDataGridViewLabel.Text = "T30 [s] global value trend";
