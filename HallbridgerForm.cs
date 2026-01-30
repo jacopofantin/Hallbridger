@@ -58,6 +58,9 @@ namespace Hallbridger
         private static readonly double minApertureMillimiters = 0.0;
         private static readonly double maxApertureMillimiters = 99999.0;
 
+        // shared random number generator for generating random cell background colors for data discrepancy highlighting (otherwise the same seed of the pseudorandom generator is used in different data visualization method calls)
+        private static readonly Random SharedRandom = new Random();
+
         // dictionary to store cell background colors in DataGridViews (needed for the show/hidden data discrepancy highlighting)
         Dictionary<DataGridView, Dictionary<string, Color>> cellColors = new Dictionary<DataGridView, Dictionary<string, Color>>();
 
@@ -68,10 +71,6 @@ namespace Hallbridger
         private bool stagecraftDataDiscrepancyHighlightable = false;
         private bool leftPanelDataDiscrepancyHighlightable = false;
         private bool rightPanelDataDiscrepancyHighlightable = false;
-
-        // waiting intervals in milliseconds for computing-power-demanding asynchronous operations (for instance, DataGridView cell color updates)
-        private readonly int shortWaitInterval = 20;
-        private readonly int longWaitInterval = 1000;
 
         // class-level variables for storing the 3D hall model and its file path
         private IfcStore hall3DModel;
@@ -284,6 +283,7 @@ namespace Hallbridger
                 // using a temporary copy of the 3D model so the class-level one doesn't get disposed
                 using (var temp3DModel = IfcStore.Open(filePath))
                 {
+                    /*
                     // extract the list of stagecraft equipment pieces and panel blocks from the 3D model
                     var equipmentPieces = temp3DModel.Instances
                         .OfType<IIfcBuildingElementProxy>()
@@ -296,7 +296,8 @@ namespace Hallbridger
                         .Where(p => p.IsTypedBy
                             .Any(t => t.RelatingType != null && t.RelatingType.Name == "PANEL BLOCK:PANEL BLOCK"))
                         .ToList();
-
+                    */
+                    /*
                     //extract the panel and its aperture angle
                     var firstPanel = temp3DModel.Instances
                         .OfType<IIfcFurnishingElement>()
@@ -309,14 +310,14 @@ namespace Hallbridger
                         .FirstOrDefault(prop => prop.Name == "PANEL ANGLE");
 
                     Console.WriteLine($"Panel ID: {firstPanel?.GlobalId}, Name: {firstPanel?.Name}, PANEL ANGLE: {rotationAngleProperty?.NominalValue}");
-
+                    */
                     // store stagecraft equipment positions and panel apertures in the class-level dictionaries
                     foreach (var pair in hall3DModelStagecraftControlUnitsComposition)
                     {
                         var key = pair.Key;
                         var globalIdList = pair.Value;
 
-                        hall3DModelStagecraftEquipmentPositions[key] = GetEquipmentPositionByGlobalId(equipmentPieces, globalIdList[0]);
+                        hall3DModelStagecraftEquipmentPositions[key] = Get3DPropertyValue(hall3DModel, globalIdList[0], "PIECE POSITION");
                     }
 
                     foreach (var pair in hall3DModelLeftPanelControlUnitsComposition)
@@ -324,7 +325,7 @@ namespace Hallbridger
                         var key = pair.Key;
                         var globalIdList = pair.Value;
 
-                        hall3DModelLeftPanelApertures[key] = GetPanelAngleByGlobalId(pivotingPanels, globalIdList[0]);
+                        hall3DModelLeftPanelApertures[key] = Get3DPropertyValue(hall3DModel, globalIdList[0], "PANEL ANGLE");
                     }
 
                     foreach (var pair in hall3DModelRightPanelControlUnitsComposition)
@@ -332,7 +333,7 @@ namespace Hallbridger
                         var key = pair.Key;
                         var globalIdList = pair.Value;
 
-                        hall3DModelRightPanelApertures[key] = GetPanelAngleByGlobalId(pivotingPanels, globalIdList[0]);
+                        hall3DModelRightPanelApertures[key] = Get3DPropertyValue(hall3DModel, globalIdList[0], "PANEL ANGLE");
                     }
                     /*
                     foreach (var panel in pivotingPanels)
@@ -368,7 +369,6 @@ namespace Hallbridger
 
                         hall3DModelStagecraftEquipmentPositions.Add(piece.Name, int.Parse(position.NominalValue));
                     }*/
-
                     if (realHallStagecraftDataGridView.Rows.Count > 0)
                     {
                         stagecraftDataDiscrepancyHighlightable = true;
@@ -394,12 +394,6 @@ namespace Hallbridger
         // method to update the loaded 3D hall using loaded real hall data
         private void Update3DHall()
         {
-            if (hall3DModelFilePath == null)
-            {
-                System.Windows.Forms.MessageBox.Show("No 3D hall model loaded. Please load a 3D hall before updating it.");
-                return;
-            }
-
             try
             {
                 var xbimEditor = new XbimEditorCredentials
@@ -419,19 +413,7 @@ namespace Hallbridger
                     // start a transaction to overwrite the stagecraft equipment positions and panel apertures in the 3D model with those of the real hall
                     using (var hall3DModelUpdate = temp3DModel.BeginTransaction("3D hall update"))
                     {
-                        // extract the list of stagecraft equipment pieces and panel blocks from the 3D model
-                        var equipmentPieces = temp3DModel.Instances
-                            .OfType<IIfcBuildingElementProxy>()
-                            .Where(p => p.IsTypedBy
-                                .Any(t => t.RelatingType != null && t.RelatingType.Name == "STAGECRAFT EQUIPMENT:STAGECRAFT EQUIPMENT"))
-                            .ToList();
-
-                        var pivotingPanels = temp3DModel.Instances
-                            .OfType<IIfcFurnishingElement>()
-                            .Where(p => p.IsTypedBy
-                                .Any(t => t.RelatingType != null && t.RelatingType.Name == "PANEL BLOCK:PANEL BLOCK"))
-                            .ToList();
-
+                        /*
                         //extract position property for stagecraft equipment pieces and aperture property for pivoting panels
                         var equipmentPiecePositions = equipmentPieces
                             .FirstOrDefault()?.IsDefinedBy
@@ -460,7 +442,7 @@ namespace Hallbridger
 
                         //writes the new aperture of the panel in the 3D model
                         rotationAngleProperty.NominalValue = new Xbim.Ifc4.MeasureResource.IfcPlaneAngleMeasure(22.79);
-
+                        */
                         // overwrite the stagecraft equipment positions and panel apertures in the 3D model with the loaded real hall data
                         foreach (var pair in hall3DModelStagecraftControlUnitsComposition)
                         {
@@ -469,9 +451,10 @@ namespace Hallbridger
 
                             foreach (var globalId in globalIdList)
                             {
-                                SetEquipmentPositionByGlobalId(
-                                    equipmentPieces,
+                                Set3DPropertyValue(
+                                    temp3DModel,
                                     globalId,
+                                    "PIECE POSITION",
                                     realHallStagecraftEquipmentPositions[key] ?? null);
                             }
                         }
@@ -483,9 +466,10 @@ namespace Hallbridger
 
                             foreach (var globalId in globalIdList)
                             {
-                                SetPanelAngleByGlobalId(
-                                    pivotingPanels,
+                                Set3DPropertyValue(
+                                    temp3DModel,
                                     globalId,
+                                    "PANEL ANGLE",
                                     realHallLeftPanelApertures[key] ?? null);
                             }
                         }
@@ -496,9 +480,10 @@ namespace Hallbridger
                             var globalIdList = pair.Value;
                             foreach (var globalId in globalIdList)
                             {
-                                SetPanelAngleByGlobalId(
-                                    pivotingPanels,
+                                Set3DPropertyValue(
+                                    temp3DModel,
                                     globalId,
+                                    "PANEL ANGLE",
                                     realHallRightPanelApertures[key] ?? null);
                             }
                         }
@@ -600,29 +585,19 @@ namespace Hallbridger
          * conversionMethod: method to convert numerical values from one unit of measurement to another;
          * formattingMethod: method to format numerical values into strings with unit of measurement for display
          */
-        private async void ViewLoadedData(DataGridView dgv, Dictionary<string, double?> data, DataGridView compareDgv, Dictionary<string, double?> compareData, Func<double?, double> conversionMethod, Func<double, string> formattingMethod)
+        private void ViewLoadedData(DataGridView dgv, Dictionary<string, double?> data, DataGridView compareDgv, Dictionary<string, double?> compareData, Func<double?, double> conversionMethod, Func<double, string> formattingMethod)
         {
             // save current data sorting
-            DataGridViewColumn dataGridViewSortedColumn = dgv.SortedColumn;
-            ListSortDirection? dataGridViewSortDirection = null;
-            if (dataGridViewSortedColumn != null)
-            {
-                dataGridViewSortDirection = dgv.SortOrder == SortOrder.Descending
-                    ? ListSortDirection.Descending
-                    : ListSortDirection.Ascending;
-            }
+            GetDataSorting(dgv, out var dataGridViewSortedColumn, out var dataGridViewSortDirection);
 
             // save current scroll position
-            int dataGridViewTopRowIndex = dgv.FirstDisplayedScrollingRowIndex;
+            int dataGridViewTopRowIndex = GetScrollPosition(dgv);
 
             // save current cell selection
             selectedCells[dgv] = GetCellSelection(dgv);
 
-            // if "Automatic discrepancy highlighting" option is enabled and both real and 3D hall data will have been loaded by the end of this method execution, save current cell background colors
-            if (automaticDiscrepancyHighlightingMenuEntry.Checked && compareDgv.Rows.Count > 0)
-            {
-                SaveCellBackgroundColors(dgv);
-            }
+            // save current cell background colors
+            SaveCellBackgroundColors(dgv);
 
             // empty and refill the DataGridView
             dgv.Rows.Clear();
@@ -634,16 +609,10 @@ namespace Hallbridger
             }
 
             // restore previous data sorting
-            if (dataGridViewSortedColumn != null && dataGridViewSortDirection.HasValue)
-            {
-                dgv.Sort(dataGridViewSortedColumn, dataGridViewSortDirection.Value);
-            }
+            SetDataSorting(dgv, dataGridViewSortedColumn, dataGridViewSortDirection);
 
             // restore previous scroll position
-            if (dataGridViewTopRowIndex >= 0)
-            {
-                dgv.FirstDisplayedScrollingRowIndex = dataGridViewTopRowIndex;
-            }
+            SetScrollPosition(dgv, dataGridViewTopRowIndex);
 
             // restore previous cell selection
             if (selectedCells.TryGetValue(dgv, out var cellSelection))
@@ -651,10 +620,17 @@ namespace Hallbridger
                 SetCellSelection(dgv, cellSelection);
             }
 
-            // if "Automatic discrepancy highlighting" option is enabled and both real and 3D hall data have already been loaded, highlight differences between them
-            if (automaticDiscrepancyHighlightingMenuEntry.Checked && dgv.Rows.Count > 0 && compareDgv.Rows.Count > 0)
+            // if both real and 3D hall data have already been loaded, update cell background colors based on data discrepancies
+            if (dgv.Rows.Count > 0 && compareDgv.Rows.Count > 0)
             {
-                await UpdateCellBackgroundColors(dgv, data, compareDgv, compareData);
+                UpdateCellBackgroundColors(dgv, data, compareDgv, compareData);
+
+                // if "Automatic discrepancy highlighting" option is enabled, highlight differences between the data
+                if (automaticDiscrepancyHighlightingMenuEntry.Checked)
+                {
+                    ApplyCellBackgroundColors(dgv);
+                    ApplyCellBackgroundColors(compareDgv);
+                }
             }
         }
 
@@ -667,8 +643,8 @@ namespace Hallbridger
                 return;
             }
 
-            var context = new Xbim3DModelContext(hall3DModel);
-            context.CreateContext();
+            var hall3DModelContext = new Xbim3DModelContext(hall3DModel);
+            hall3DModelContext.CreateContext();
 
             hall3DModelViewer.Model = hall3DModel;
             hall3DModelViewer.LoadGeometry(hall3DModel);
@@ -710,24 +686,15 @@ namespace Hallbridger
                         return;
                 }
 
-                // import data from the real hall and display them in the corresponding DataGridViews, giving time for the data display in case some computing-power-demanding operation has to be performed
+                // import data from the real hall and display them in the corresponding DataGridViews
                 await LoadRealHallData(apiEndpoint, realHallFilePath);
 
                 ViewLoadedData(realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
-
-                if (automaticDiscrepancyHighlightingMenuEntry.Checked && stagecraftDataDiscrepancyHighlightable)
-                {
-                    await Task.Delay(longWaitInterval);
-                }
-
                 ViewLoadedData(realHallLeftPanelsDataGridView, realHallLeftPanelApertures, hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-
-                if (automaticDiscrepancyHighlightingMenuEntry.Checked && leftPanelDataDiscrepancyHighlightable)
-                {
-                    await Task.Delay(longWaitInterval);
-                }
-
                 ViewLoadedData(realHallRightPanelsDataGridView, realHallRightPanelApertures, hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+
+                // update the "Highlight data discrepancies" checkbox state
+                UpdateHighlightDataDiscrepanciesCheckBoxState();
             }
         }
 
@@ -778,20 +745,11 @@ namespace Hallbridger
                 Load3DHall(hall3DModelFilePath);
 
                 ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
-
-                if (automaticDiscrepancyHighlightingMenuEntry.Checked && stagecraftDataDiscrepancyHighlightable)
-                {
-                    await Task.Delay(longWaitInterval);
-                }
-
                 ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-
-                if (automaticDiscrepancyHighlightingMenuEntry.Checked && leftPanelDataDiscrepancyHighlightable)
-                {
-                    await Task.Delay(longWaitInterval);
-                }
-
                 ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+
+                // update the "Highlight data discrepancies" checkbox state
+                UpdateHighlightDataDiscrepanciesCheckBoxState();
 
                 // load 3D hall on viewer
                 View3DHall();
@@ -837,20 +795,11 @@ namespace Hallbridger
                     await LoadRealHallData(apiEndpoint, loadRealHallDataDialog.FileName);
 
                     ViewLoadedData(realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
-
-                    if (automaticDiscrepancyHighlightingMenuEntry.Checked && stagecraftDataDiscrepancyHighlightable)
-                    {
-                        await Task.Delay(longWaitInterval);
-                    }
-
                     ViewLoadedData(realHallLeftPanelsDataGridView, realHallLeftPanelApertures, hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-
-                    if (automaticDiscrepancyHighlightingMenuEntry.Checked && leftPanelDataDiscrepancyHighlightable)
-                    {
-                        await Task.Delay(longWaitInterval);
-                    }
-
                     ViewLoadedData(realHallRightPanelsDataGridView, realHallRightPanelApertures, hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+
+                    // update the "Highlight data discrepancies" checkbox state
+                    UpdateHighlightDataDiscrepanciesCheckBoxState();
                 }
             }
         }
@@ -880,20 +829,11 @@ namespace Hallbridger
                     Load3DHall(hall3DModelFilePath);
 
                     ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
-
-                    if (automaticDiscrepancyHighlightingMenuEntry.Checked && stagecraftDataDiscrepancyHighlightable)
-                    {
-                        await Task.Delay(longWaitInterval);
-                    }
-
                     ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-
-                    if (automaticDiscrepancyHighlightingMenuEntry.Checked && leftPanelDataDiscrepancyHighlightable)
-                    {
-                        await Task.Delay(longWaitInterval);
-                    }
-
                     ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+
+                    // update the "Highlight data discrepancies" checkbox state
+                    UpdateHighlightDataDiscrepanciesCheckBoxState();
 
                     // load 3D hall on viewer
                     View3DHall();
@@ -914,6 +854,32 @@ namespace Hallbridger
                 return;
             }
 
+            // second, check if a 3D hall has been previously loaded, and if not, open a dialog to let the user choose it
+            if (hall3DModel == null)
+            {
+                using (System.Windows.Forms.OpenFileDialog updateHall3DModelDialog = new System.Windows.Forms.OpenFileDialog())
+                {
+                    updateHall3DModelDialog.Title = "Update 3D hall";
+                    updateHall3DModelDialog.Filter = "3D model file (*.ifc)|*.ifc|All files (*.*)|*.*";
+                    if (updateHall3DModelDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        string hall3DModelFilePath = updateHall3DModelDialog.FileName;
+                        string hall3DModelFileExtension = Path.GetExtension(hall3DModelFilePath).ToLowerInvariant();
+                        switch (hall3DModelFileExtension)
+                        {
+                            case ".ifc":
+                                break;
+                            default:
+                                System.Windows.Forms.MessageBox.Show("File extension not supported: " + hall3DModelFileExtension);
+                                return;
+                        }
+
+                        // import data from the 3D hall
+                        Load3DHall(hall3DModelFilePath);
+                    }
+                }
+            }
+
             // update the 3D hall with the loaded real hall data
             Update3DHall();
 
@@ -921,20 +887,11 @@ namespace Hallbridger
             Load3DHall(hall3DModelFilePath);
 
             ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
-
-            if (automaticDiscrepancyHighlightingMenuEntry.Checked && stagecraftDataDiscrepancyHighlightable)
-            {
-                await Task.Delay(longWaitInterval);
-            }
-
             ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-
-            if (automaticDiscrepancyHighlightingMenuEntry.Checked && leftPanelDataDiscrepancyHighlightable)
-            {
-                await Task.Delay(longWaitInterval);
-            }
-
             ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+
+            // update the "Highlight data discrepancies" checkbox state
+            UpdateHighlightDataDiscrepanciesCheckBoxState();
 
             // load 3D hall on viewer
             View3DHall();
@@ -979,11 +936,11 @@ namespace Hallbridger
         }
 
         // checkbox event handlers
-        private async void HighlightDataDiscrepanciesCheckBox_CheckChanged(object sender, EventArgs e)
+        private void HighlightDataDiscrepanciesCheckBox_CheckChanged(object sender, EventArgs e)
         {
             if (!highlightDataDiscrepanciesCheckBox.Checked)
             {
-                // discrepancies highlighting was switched on, hide it
+                // discrepancies highlighting used to be switched on and is now off, hide it
                 ResetCellBackgroundColors(realHallStagecraftDataGridView);
                 ResetCellBackgroundColors(realHallLeftPanelsDataGridView);
                 ResetCellBackgroundColors(realHallRightPanelsDataGridView);
@@ -993,18 +950,13 @@ namespace Hallbridger
             }
             else
             {
-                // discrepancies highlighting was switched off, show it
-                RestoreCellBackgroundColors(realHallStagecraftDataGridView);
-                await Task.Delay(longWaitInterval);
-                RestoreCellBackgroundColors(realHallLeftPanelsDataGridView);
-                await Task.Delay(longWaitInterval);
-                RestoreCellBackgroundColors(realHallRightPanelsDataGridView);
-                await Task.Delay(longWaitInterval);
-                RestoreCellBackgroundColors(hall3DModelStagecraftDataGridView);
-                await Task.Delay(longWaitInterval);
-                RestoreCellBackgroundColors(hall3DModelLeftPanelsDataGridView);
-                await Task.Delay(longWaitInterval);
-                RestoreCellBackgroundColors(hall3DModelRightPanelsDataGridView);
+                // discrepancies highlighting used to be switched off and is now on, show it
+                ApplyCellBackgroundColors(realHallStagecraftDataGridView);
+                ApplyCellBackgroundColors(hall3DModelStagecraftDataGridView);
+                ApplyCellBackgroundColors(realHallLeftPanelsDataGridView);
+                ApplyCellBackgroundColors(hall3DModelLeftPanelsDataGridView);
+                ApplyCellBackgroundColors(realHallRightPanelsDataGridView);
+                ApplyCellBackgroundColors(hall3DModelRightPanelsDataGridView);
             }
         }
 
@@ -1061,6 +1013,29 @@ namespace Hallbridger
                 {
                     SetCellSelection(dgv, cellSelection);
                 }
+            }
+        }
+
+        // mouse-move event for tab Moving elements (workaround for showing the tooltip on the "Highlight data discrepancies" checkbox when it's disabled)
+        private void MovingElementsTab_MouseMove(object sender, MouseEventArgs e)
+        {
+            // checkbox position relative to its Parent control (movingElementsTab)
+            var checkboxRectangle = new Rectangle(
+                highlightDataDiscrepanciesCheckBox.Location,
+                highlightDataDiscrepanciesCheckBox.Size);
+
+            if (!highlightDataDiscrepanciesCheckBox.Enabled && checkboxRectangle.Contains(e.Location))
+            {
+                highlightDataDiscrepanciesToolTip.Show(
+                    "Load at least some of both real and 3D hall data to highlight differences.",
+                    movingElementsTab,
+                    highlightDataDiscrepanciesCheckBox.Left,
+                    highlightDataDiscrepanciesCheckBox.Bottom + 5,
+                    5000);
+            }
+            else
+            {
+                highlightDataDiscrepanciesToolTip.Hide(movingElementsTab);
             }
         }
 
@@ -1147,12 +1122,7 @@ namespace Hallbridger
                         unitOfMeasurement = UnitOfMeasurement.Meters;
                         minimumValue = (decimal) ConvertMillimetersToMeters(minPositionMillimeters);
                         maximumValue = (decimal) ConvertMillimetersToMeters(maxPositionMillimeters);
-                        var equipmentPieces = hall3DModel.Instances
-                            .OfType<IIfcBuildingElementProxy>()
-                            .Where(elem => elem.IsTypedBy
-                            .Any(type => type.RelatingType?.Name == "EQUIPMENT PIECE:EQUIPMENT PIECE"))
-                            .ToList();
-                        var positionValue = GetEquipmentPositionByGlobalId(equipmentPieces, globalId);
+                        var positionValue = Get3DPropertyValue(hall3DModel, globalId, "PIECE POSITION");
                         
                         if (positionValue.HasValue)
                         {
@@ -1167,13 +1137,8 @@ namespace Hallbridger
                         unitOfMeasurement = UnitOfMeasurement.DecimalDegrees;
                         minimumValue = (decimal)minApertureDegrees;
                         maximumValue = (decimal)maxApertureDegrees;
-                        var pivotingPanels = hall3DModel.Instances
-                            .OfType<IIfcFurnishingElement>()
-                            .Where(elem => elem.IsTypedBy
-                            .Any(type => type.RelatingType?.Name == "PANEL ROTATION:PANEL ROTATION 60"))
-                            .ToList();
-                        var apertureValue = GetPanelAngleByGlobalId(pivotingPanels, globalId);
-                        
+                        var apertureValue = Get3DPropertyValue(hall3DModel, globalId, "PANEL ANGLE");
+
                         if (apertureValue.HasValue)
                         {
                             positionApertureValue = (decimal) apertureValue.Value;
@@ -1248,7 +1213,7 @@ namespace Hallbridger
                         var controlUnits = valueConfirmedArguments.ControlUnits;
                         var globalId = valueConfirmedArguments.GlobalId;
                         var valueType = valueConfirmedArguments.ValueType;
-                        var positionApertureValue = (double)valueConfirmedArguments.PositionApertureValue;
+                        var positionApertureValue = (double) valueConfirmedArguments.PositionApertureValue;
 
                         if (valueType == ComboNumericTextBox.ComboNumericValueType.Position)
                         {
@@ -1257,9 +1222,10 @@ namespace Hallbridger
                             if (controlUnits.Count == 0)
                             {
                                 // single element update not linked to any control unit
-                                SetEquipmentPositionByGlobalId(
-                                    temp3DModel.Instances.OfType<IIfcBuildingElementProxy>().ToList(),
+                                Set3DPropertyValue(
+                                    temp3DModel,
                                     globalId,
+                                    "PIECE POSITION",
                                     positionApertureValue);
                             }
                             else
@@ -1272,9 +1238,10 @@ namespace Hallbridger
                                     {
                                         foreach (var id in globalIdList)
                                         {
-                                            SetEquipmentPositionByGlobalId(
-                                                temp3DModel.Instances.OfType<IIfcBuildingElementProxy>().ToList(),
+                                            Set3DPropertyValue(
+                                                temp3DModel,
                                                 id,
+                                                "PIECE POSITION",
                                                 positionApertureValue);
                                         }
                                     }
@@ -1297,9 +1264,10 @@ namespace Hallbridger
                             if (controlUnits.Count == 0)
                             {
                                 // single element update not linked to any control unit
-                                SetPanelAngleByGlobalId(
-                                    temp3DModel.Instances.OfType<IIfcFurnishingElement>().ToList(),
+                                Set3DPropertyValue(
+                                    temp3DModel,
                                     globalId,
+                                    "PANEL ANGLE",
                                     positionApertureValue);
                             }
                             else
@@ -1308,33 +1276,24 @@ namespace Hallbridger
                                 foreach (var unit in controlUnits)
                                 {
                                     // set the new value in 3D model for each of the elements that are part of the control unit
-                                    if (hall3DModelLeftPanelControlUnitsComposition.TryGetValue(unit, out var globalIdList))
+                                    if (TryGetPanelGlobalIdList(unit, out var globalIdList))
                                     {
                                         foreach (var id in globalIdList)
                                         {
-                                            SetPanelAngleByGlobalId(
-                                                temp3DModel.Instances.OfType<IIfcFurnishingElement>().ToList(),
+                                            Set3DPropertyValue(
+                                                temp3DModel,
                                                 id,
-                                                positionApertureValue);
-                                        }
-                                    }
-                                    else if (hall3DModelRightPanelControlUnitsComposition.TryGetValue(unit, out var globalIdListRight))
-                                    {
-                                        foreach (var id in globalIdListRight)
-                                        {
-                                            SetPanelAngleByGlobalId(
-                                                temp3DModel.Instances.OfType<IIfcFurnishingElement>().ToList(),
-                                                id,
+                                                "PANEL ANGLE",
                                                 positionApertureValue);
                                         }
                                     }
 
                                     // update values in dictionary
-                                    if (hall3DModelLeftPanelApertures.TryGetValue(unit, out _))
+                                    if (hall3DModelLeftPanelApertures.ContainsKey(unit))
                                     {
                                         hall3DModelLeftPanelApertures[unit] = apertureValue;
                                     }
-                                    else if (hall3DModelRightPanelApertures.TryGetValue(unit, out _))
+                                    else if (hall3DModelRightPanelApertures.ContainsKey(unit))
                                     {
                                         hall3DModelRightPanelApertures[unit] = apertureValue;
                                     }
@@ -1421,112 +1380,156 @@ namespace Hallbridger
         /* import/export auxiliary methods
          */
 
-        // extracts the value (in meters) of IFC property "PIECE POSITION" of a stagecraft equipment piece inside a list of objects given the IFC GlobalId of the piece
-        private double? GetEquipmentPositionByGlobalId(List<IIfcBuildingElementProxy> equipmentPieces, string globalId)
+        // extracts the value of a given property from a 3D model element identified by its IFC GlobalId inside a given IFC model
+        private double? Get3DPropertyValue(IfcStore ifcModel, string globalId, string propertyName)
         {
-            var piece = equipmentPieces.FirstOrDefault(pc => pc.GlobalId == globalId);
-
-            if (piece == null)
+            switch (propertyName)
             {
-                return null;
-            }
+                case "PIECE POSITION":
+                    // extract all stagecraft equipment pieces from the 3D model
+                    var equipmentPieces = ifcModel.Instances
+                        .OfType<IIfcBuildingElementProxy>()
+                        .Where(p => p.IsTypedBy
+                            .Any(t => t.RelatingType != null && t.RelatingType.Name == "STAGECRAFT EQUIPMENT:STAGECRAFT EQUIPMENT"))
+                        .ToList();
 
-            var positionProperty = piece.IsDefinedBy
-                .Where(rel => rel.RelatingPropertyDefinition is IIfcPropertySet)
-                .SelectMany(pset => ((IIfcPropertySet) pset.RelatingPropertyDefinition).HasProperties)
-                .OfType<IIfcPropertySingleValue>()
-                .FirstOrDefault(prop => prop.Name == "PIECE POSITION");
+                    if (!(equipmentPieces.FirstOrDefault(pc => pc.GlobalId == globalId) is IIfcBuildingElementProxy piece))
+                    {
+                        return null;
+                    }
 
-            if (double.TryParse(positionProperty?.NominalValue?.ToString(), out double position))
-            {
-                return position;
-            }
+                    // extract "PIECE POSITION" property from the 3D element
+                    var positionProperty = (piece.IsTypedBy
+                        .FirstOrDefault(type => type.RelatingType.Name == "STAGECRAFT EQUIPMENT:STAGECRAFT EQUIPMENT")?.RelatingType as IIfcTypeObject)?
+                        .HasPropertySets.OfType<IIfcPropertySet>()
+                        .FirstOrDefault(pset => pset.Name == "Quote")?
+                        .HasProperties.OfType<IIfcPropertySingleValue>()
+                        .FirstOrDefault(prop => prop.Name == "PIECE POSITION");
 
-            return null;
-        }
+                    // get value of the 3D property
+                    if (double.TryParse(positionProperty?.NominalValue?.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double position))
 
-        // extracts the value (in decimal degrees) of IFC property "PANEL ANGLE" of a panel inside a panel list given the IFC GlobalId of the panel
-        private double? GetPanelAngleByGlobalId(List<IIfcFurnishingElement> pivotingPanels, string globalId)
-        {
-            var panel = pivotingPanels.FirstOrDefault(pan => pan.GlobalId == globalId);
+                        {
+                            return position;
+                    }
 
-            if (panel == null)
-            {
-                return null;
-            }
+                    return null;
+                case "PANEL ANGLE":
+                    // extract all pivoting panels from the 3D model
+                    var pivotingPanels = ifcModel.Instances
+                        .OfType<IIfcFurnishingElement>()
+                        .Where(p => p.IsTypedBy
+                            .Any(t => t.RelatingType != null && t.RelatingType.Name == "PANEL ROTATION:PANEL ROTATION 60"))
+                        .ToList();
 
-            var rotationAngleProperty = (panel.IsTypedBy
-                .FirstOrDefault(type => type.RelatingType.Name == "PANEL ROTATION:PANEL ROTATION 60")?.RelatingType as IIfcTypeObject)?
-                .HasPropertySets.OfType<IIfcPropertySet>()
-                .FirstOrDefault(pset => pset.Name == "Quote")?
-                .HasProperties.OfType<IIfcPropertySingleValue>()
-                .FirstOrDefault(prop => prop.Name == "PANEL ANGLE");
+                    if (!(pivotingPanels.FirstOrDefault(pan => pan.GlobalId == globalId) is IIfcFurnishingElement panel))
+                    {
+                        return null;
+                    }
 
-            if (double.TryParse(rotationAngleProperty?.NominalValue?.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double angle))
-            {
-                return angle;
-            }
+                    // extract "PANEL ANGLE" property from the 3D element
+                    var angleProperty = (panel.IsTypedBy
+                        .FirstOrDefault(type => type.RelatingType.Name == "PANEL ROTATION:PANEL ROTATION 60")?.RelatingType as IIfcTypeObject)?
+                        .HasPropertySets.OfType<IIfcPropertySet>()
+                        .FirstOrDefault(pset => pset.Name == "Quote")?
+                        .HasProperties.OfType<IIfcPropertySingleValue>()
+                        .FirstOrDefault(prop => prop.Name == "PANEL ANGLE");
 
-            return null;
-        }
+                    // get value of the 3D property
+                    if (double.TryParse(angleProperty?.NominalValue?.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double angle))
+                    {
+                        return angle;
+                    }
 
-        // assigns a new value (in meters) to IFC property "PIECE POSITION" of a stagecraft equipment piece inside a list of objects given the IFC GlobalId of the piece
-        private void SetEquipmentPositionByGlobalId(List<IIfcBuildingElementProxy> equipmentPieces, string globalId, double? position)
-        {
-            var piece = equipmentPieces.FirstOrDefault(pc => pc.GlobalId == globalId);
-
-            if (piece == null)
-            {
-                return;
-            }
-
-            var positionProperty = piece.IsDefinedBy
-                .Where(rel => rel.RelatingPropertyDefinition is IIfcPropertySet)
-                .SelectMany(pset => ((IIfcPropertySet)pset.RelatingPropertyDefinition).HasProperties)
-                .OfType<IIfcPropertySingleValue>()
-                .FirstOrDefault(prop => prop.Name == "PIECE POSITION");
-
-            if (positionProperty != null)
-            {
-                if (position.HasValue)
-                {
-                    positionProperty.NominalValue = new Xbim.Ifc4.MeasureResource.IfcLengthMeasure(position.Value);
-                }
-                else
-                {
-                    positionProperty.NominalValue = null;
-                }
+                    return null;
+                default:
+                    return null;
             }
         }
 
-        // assigns a new value (in decimal degrees) to IFC property "PANEL ANGLE" of a panel inside a panel list given the IFC GlobalId of the panel
-        private void SetPanelAngleByGlobalId(List<IIfcFurnishingElement> pivotingPanels, string globalId, double? angle)
+        // assigns a new value to a given property of a 3D model element identified by its IFC GlobalId inside a given IFC model
+        private void Set3DPropertyValue(IfcStore ifcModel, string globalId, string propertyName, double? propertyValue)
         {
-            var panel = pivotingPanels.FirstOrDefault(pan => pan.GlobalId == globalId);
-
-            if (panel == null)
+            switch (propertyName)
             {
-                return;
-            }
+                case "PIECE POSITION":
+                    // extract all stagecraft equipment pieces from the 3D model
+                    var equipmentPieces = ifcModel.Instances
+                        .OfType<IIfcBuildingElementProxy>()
+                        .Where(p => p.IsTypedBy
+                            .Any(t => t.RelatingType != null && t.RelatingType.Name == "STAGECRAFT EQUIPMENT:STAGECRAFT EQUIPMENT"))
+                        .ToList();
 
-            var rotationAngleProperty = (panel.IsTypedBy
-                .FirstOrDefault(type => type.RelatingType.Name == "PANEL ROTATION:PANEL ROTATION 60")?.RelatingType as IIfcTypeObject)?
-                .HasPropertySets.OfType<IIfcPropertySet>()
-                .FirstOrDefault(pset => pset.Name == "Quote")?
-                .HasProperties.OfType<IIfcPropertySingleValue>()
-                .FirstOrDefault(prop => prop.Name == "PANEL ANGLE");
+                    if (!(equipmentPieces.FirstOrDefault(pc => pc.GlobalId == globalId) is IIfcBuildingElementProxy piece))
+                    {
+                        return;
+                    }
 
-            if (rotationAngleProperty != null)
-            {
-                if (angle.HasValue)
-                {
-                    rotationAngleProperty.NominalValue = new Xbim.Ifc4.MeasureResource.IfcPlaneAngleMeasure(angle.Value);
-                }
-                else
-                {
-                    rotationAngleProperty.NominalValue = null;
-                }
+                    // extract "PIECE POSITION" property from the 3D element
+                    var positionProperty = (piece.IsTypedBy
+                        .FirstOrDefault(type => type.RelatingType.Name == "STAGECRAFT EQUIPMENT:STAGECRAFT EQUIPMENT")?.RelatingType as IIfcTypeObject)?
+                        .HasPropertySets.OfType<IIfcPropertySet>()
+                        .FirstOrDefault(pset => pset.Name == "Quote")?
+                        .HasProperties.OfType<IIfcPropertySingleValue>()
+                        .FirstOrDefault(prop => prop.Name == "PIECE POSITION");
+
+                    // set new value to the 3D property
+                    if (positionProperty != null)
+                    {
+                        if (propertyValue.HasValue)
+                        {
+                            positionProperty.NominalValue = new Xbim.Ifc4.MeasureResource.IfcLengthMeasure(propertyValue.Value);
+                        }
+                        else
+                        {
+                            positionProperty.NominalValue = null;
+                        }
+                    }
+                    break;
+                case "PANEL ANGLE":
+                    // extract all pivoting panels from the 3D model
+                    var pivotingPanels = ifcModel.Instances
+                        .OfType<IIfcFurnishingElement>()
+                        .Where(p => p.IsTypedBy
+                            .Any(t => t.RelatingType != null && t.RelatingType.Name == "PANEL ROTATION:PANEL ROTATION 60"))
+                        .ToList();
+
+                    if (!(pivotingPanels.FirstOrDefault(pan => pan.GlobalId == globalId) is IIfcFurnishingElement panel))
+                    {
+                        return;
+                    }
+
+                    // extract "PANEL ANGLE" property from the 3D element
+                    var angleProperty = (panel.IsTypedBy
+                        .FirstOrDefault(type => type.RelatingType.Name == "PANEL ROTATION:PANEL ROTATION 60")?.RelatingType as IIfcTypeObject)?
+                        .HasPropertySets.OfType<IIfcPropertySet>()
+                        .FirstOrDefault(pset => pset.Name == "Quote")?
+                        .HasProperties.OfType<IIfcPropertySingleValue>()
+                        .FirstOrDefault(prop => prop.Name == "PANEL ANGLE");
+
+                    // set new value to the 3D property
+                    if (angleProperty != null)
+                    {
+                        if (propertyValue.HasValue)
+                        {
+                            angleProperty.NominalValue = new Xbim.Ifc4.MeasureResource.IfcPlaneAngleMeasure(propertyValue.Value);
+                        }
+                        else
+                        {
+                            angleProperty.NominalValue = null;
+                        }
+                    }
+                    break;
+                default:
+                    return;
             }
+        }
+
+        // auxiliary method to get the list of IFC GlobalIds of the panels composing a given control unit (searches both in left and right panel control units composition dictionaries)
+        private bool TryGetPanelGlobalIdList(string unit, out List<string> globalIdList)
+        {
+            return hall3DModelLeftPanelControlUnitsComposition.TryGetValue(unit, out globalIdList)
+                || hall3DModelRightPanelControlUnitsComposition.TryGetValue(unit, out globalIdList);
         }
 
         /* data and 3D model visualization auxiliary methods
@@ -1545,7 +1548,7 @@ namespace Hallbridger
             }
         }
 
-        private int GetScrollPositions(DataGridView dgv)
+        private int GetScrollPosition(DataGridView dgv)
         {
             return dgv.FirstDisplayedScrollingRowIndex;
         }
@@ -1596,7 +1599,7 @@ namespace Hallbridger
             }
         }
 
-        // auxiliary method to save cell background colors of all rows in a DataGridView in the class-level dictionary (not a getter because it modifies the class-level dictionary without returning any value)
+        // auxiliary method to store cell background colors of all rows in a DataGridView in the class-level dictionary (not a getter because it modifies the class-level dictionary without returning any value)
         private void SaveCellBackgroundColors(DataGridView dgv)
         {
             if (!cellColors.ContainsKey(dgv) || cellColors[dgv] == null)
@@ -1611,8 +1614,8 @@ namespace Hallbridger
             }
         }
 
-        // auxiliary method to restore cell background colors of all rows of a DataGridView from the class-level dictionary (not a setter because it modifies the DataGridView using the class-level dictionary and doesn't take the value to be set as input)
-        private void RestoreCellBackgroundColors(DataGridView dgv)
+        // auxiliary method to paint cell background of all rows of a DataGridView using the class-level dictionary of cell colors (not a setter because it modifies the DataGridView using the class-level dictionary and doesn't take the value to be set as input)
+        private void ApplyCellBackgroundColors(DataGridView dgv)
         {
             if (cellColors[dgv] == null)
             {
@@ -1630,17 +1633,8 @@ namespace Hallbridger
             }
         }
 
-        // auxiliary method to reset cell background colors of a DataGridView to default
-        private void ResetCellBackgroundColors(DataGridView dgv)
-        {
-            foreach (DataGridViewRow row in dgv.Rows)
-            {
-                row.DefaultCellStyle.BackColor = Color.Empty;
-            }
-        }
-
         // auxiliary method to update cell background colors of a DataGridView couple (highlights data discrepancies between two DataGridViews given their data dictionaries)
-        private async Task UpdateCellBackgroundColors(DataGridView dgv, Dictionary<string, double?> data, DataGridView cmpDgv, Dictionary<string, double?> cmpData)
+        private void UpdateCellBackgroundColors(DataGridView dgv, Dictionary<string, double?> data, DataGridView cmpDgv, Dictionary<string, double?> cmpData)
         {
             if (cellColors[dgv].Count == 0)
             {
@@ -1652,43 +1646,53 @@ namespace Hallbridger
                 }
             }
 
-            foreach (var key in data.Keys)
+            if (cellColors[cmpDgv].Count == 0)
             {
-                DataGridViewRow row = dgv.Rows
-                    .Cast<DataGridViewRow>()
-                    .FirstOrDefault(r => r.Cells[0].Value != null && r.Cells[0].Value.ToString() == key);
-                DataGridViewRow cmpRow = cmpDgv.Rows
-                    .Cast<DataGridViewRow>()
-                    .FirstOrDefault(r => r.Cells[0].Value != null && r.Cells[0].Value.ToString() == key);
-
-                if (row == null || cmpRow == null)
+                cellColors[cmpDgv] = new Dictionary<string, Color>();
+                foreach (var key in cmpData.Keys)
                 {
-                    continue;
+                    cellColors[cmpDgv][key] = Color.Empty;
                 }
+            }
 
-                if (cmpData.ContainsKey(key) && data[key] != cmpData[key])
+            foreach (var controlUnit in data.Keys)
+            {
+                if (cmpData.ContainsKey(controlUnit) && data[controlUnit] != cmpData[controlUnit])
                 {
                     // discrepancy found
-                    if (cellColors[dgv][key] == Color.Empty)
+                    if (cellColors[dgv][controlUnit] == Color.Empty || cellColors[cmpDgv][controlUnit] == Color.Empty)
                     {
-                        // new discrepancy, generate a new random color and store it in the dictionary
-                        Random rnd = new Random();
-                        cellColors[dgv][key] = Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
+                        // new discrepancy, generate a new random color and store it in the dictionary for both DataGridViews
+                        Color randomColor;
+                        lock (SharedRandom)
+                        {
+                            randomColor = Color.FromArgb(
+                                SharedRandom.Next(256),
+                                SharedRandom.Next(256),
+                                SharedRandom.Next(256));
+                        }
+                        cellColors[dgv][controlUnit] = randomColor;
+                        cellColors[cmpDgv][controlUnit] = randomColor;
                     }
                 }
                 else
                 {
                     // no discrepancy, reset cell colors to default if they are not already
-                    if (cellColors[dgv][key] != Color.Empty)
+                    if (cellColors[dgv][controlUnit] != Color.Empty)
                     {
-                        cellColors[dgv][key] = Color.Empty;
+                        cellColors[dgv][controlUnit] = Color.Empty;
+                        cellColors[cmpDgv][controlUnit] = Color.Empty;
                     }
                 }
+            }
+        }
 
-                // apply color to the row couple
-                row.DefaultCellStyle.BackColor = cellColors[dgv][key];
-                await Task.Delay(shortWaitInterval);
-                cmpRow.DefaultCellStyle.BackColor = cellColors[dgv][key];
+        // auxiliary method to reset cell background colors of a DataGridView to default
+        private void ResetCellBackgroundColors(DataGridView dgv)
+        {
+            foreach (DataGridViewRow row in dgv.Rows)
+            {
+                row.DefaultCellStyle.BackColor = Color.Empty;
             }
         }
 
@@ -1996,6 +2000,15 @@ namespace Hallbridger
             highlightDataDiscrepanciesCheckBox.Top = buttonsY + (buttonHeight - highlightDataDiscrepanciesCheckBox.Height) / 2;
         }
 
+        // auxiliary method to enable/disable the "Highlight data discrepancies" checkbox depending on whether there are data discrepancies that can be highlighted
+        private void UpdateHighlightDataDiscrepanciesCheckBoxState()
+        {
+            highlightDataDiscrepanciesCheckBox.Enabled =
+                stagecraftDataDiscrepancyHighlightable ||
+                leftPanelDataDiscrepancyHighlightable ||
+                rightPanelDataDiscrepancyHighlightable;
+        }
+
         // auxiliary methods for acoustics tab component layout
         private void LayOutComponents_AcousticsTab()
         {
@@ -2077,9 +2090,9 @@ namespace Hallbridger
         }
 
         /* auxiliary method to adapt row and column sizes of a DataGridView to content:
-         * fills available width with columns
-         * makes row heights fit content
-         * makes column widths fit content (minimum width is longest content in the column)
+         * - fills available width with columns
+         * - makes row heights fit content
+         * - makes column widths fit content (minimum width is longest content in the column)
          */
         private void AdaptDataGridViewSizes(DataGridView dgv)
         {

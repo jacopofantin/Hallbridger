@@ -62,6 +62,9 @@ namespace Hallbridger
         // "Highlight data discrepancies" checkbox
         private System.Windows.Forms.CheckBox highlightDataDiscrepanciesCheckBox;
 
+        // "Highlight data discrepancies" tooltip
+        private System.Windows.Forms.ToolTip highlightDataDiscrepanciesToolTip;
+
         // global RT values DataGridView title
         private System.Windows.Forms.Label globalRtDataGridViewLabel;
 
@@ -139,6 +142,9 @@ namespace Hallbridger
 
             // "Highlight data discrepancies" checkbox creation
             this.highlightDataDiscrepanciesCheckBox = new System.Windows.Forms.CheckBox();
+
+            // "Highlight data discrepancies" tooltip creation
+            this.highlightDataDiscrepanciesToolTip = new System.Windows.Forms.ToolTip();
 
             // global RT values DataGridView title creation
             this.globalRtDataGridViewLabel = new System.Windows.Forms.Label();
@@ -366,6 +372,9 @@ namespace Hallbridger
             this.highlightDataDiscrepanciesCheckBox.UseVisualStyleBackColor = true;
             this.highlightDataDiscrepanciesCheckBox.Click += new System.EventHandler(this.HighlightDataDiscrepanciesCheckBox_CheckChanged);
 
+            // "Highlight data discrepancies" tooltip initialization
+            UpdateHighlightDataDiscrepanciesCheckBoxState();
+
             // title for global RT values DataGridView initialization
             this.globalRtDataGridViewLabel.Text = "T30 [s] global value trend";
             this.globalRtDataGridViewLabel.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
@@ -477,6 +486,7 @@ namespace Hallbridger
             this.mainTabControl.SelectedIndexChanged += new System.EventHandler(this.TabControl_SelectedIndexChanged);
             this.movingElementsTab.Name = "movingElementsTab";
             this.movingElementsTab.Text = "Moving element data";
+            this.movingElementsTab.MouseMove += MovingElementsTab_MouseMove;
             this.acousticsTab.Name = "acousticsTab";
             this.acousticsTab.Text = "Acoustic data";
 

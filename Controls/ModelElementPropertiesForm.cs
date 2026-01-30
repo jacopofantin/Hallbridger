@@ -243,7 +243,7 @@ namespace Hallbridger.Controls
                 positionApertureValueTextBox.Visible = false;
             }
 
-            positionApertureValueTextBox.UpdateLayout();
+            positionApertureValueTextBox.SetUpComponent();
         }
 
 

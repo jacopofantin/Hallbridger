@@ -160,7 +160,6 @@ namespace Hallbridger.Controls
                 Width = 60,
                 Height = 22
             };
-            lastValidValue = numericUpDown.Value;
             numericUpDown.KeyDown += NumericUpDown_KeyDown;
             numericUpDown.Controls[0].MouseDown += NumericUpDown_MouseDown;
             numericUpDown.Controls[0].MouseUp += NumericUpDown_MouseUp;
@@ -287,6 +286,12 @@ namespace Hallbridger.Controls
                 return;
             }
 
+            if (value == lastValidValue)
+            {
+                // no change
+                return;
+            }
+
             if (value < Minimum || value > Maximum)
             {
                 numericUpDown.Value = lastValidValue;
@@ -327,7 +332,7 @@ namespace Hallbridger.Controls
         }
 
         // updates layout elements to correctly show them in the UI
-        public void UpdateLayout()
+        public void SetUpComponent()
         {
             unitOfMeasurementLabel.Text =
                 UnitOfMeasurement == UnitOfMeasurement.Meters
@@ -339,6 +344,8 @@ namespace Hallbridger.Controls
 
             applyButton.Text = "Apply";
             applyButton.Left = unitOfMeasurementLabel.Right + 12;
+
+            lastValidValue = numericUpDown.Value;
         }
     }
 
