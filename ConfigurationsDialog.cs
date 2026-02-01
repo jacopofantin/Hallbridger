@@ -8,7 +8,7 @@ namespace Hallbridger
 {
     public class ConfigurationsDialog : Form
     {
-        private readonly string iniPath;
+        // fields for INI file handling
         private IniFile iniFile;
 
         // real hall controls declaration
@@ -35,11 +35,12 @@ namespace Hallbridger
 
         public ConfigurationsDialog(string iniPath)
         {
-            this.iniPath = iniPath;
+            // INI file initialization
             this.iniFile = new IniFile(iniPath);
-
-            InitializeComponents();
             LoadIniValues();
+
+            // component initialization
+            InitializeComponents();
         }
 
         private void InitializeComponents()

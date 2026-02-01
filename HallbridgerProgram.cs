@@ -13,7 +13,7 @@ namespace Hallbridger
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new HallbridgerForm());
+            Application.Run(new HallbridgerForm()); 
         }
     }
 }

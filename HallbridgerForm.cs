@@ -92,6 +92,9 @@ namespace Hallbridger
         // class-level variable to keep track of the current open/close panel configuration of the 3D hall
         private string currentHall3DModelPanelConfiguration = null;
 
+        // class-level variable to keep track of first tab change (to clear cell selection of DataGridViews that are present in the other tabs)
+        private bool isFirstTabChange = true;
+
         // INI file to store configuration for future software usage
         private readonly string iniPath = "D:\\Dateien\\Hallbridger\\Configuration\\conf.ini";
 
@@ -188,6 +191,23 @@ namespace Hallbridger
             }
         }
 
+        // method to initialize the 3D model viewer
+        private void Initialize3DModelViewer()
+        {
+            // create dummy WPF Control and discard it just to initialize the 3D viewer (workaround for WPF Controls needing to be viewed in order to be correctly included in the UI tree)
+            var tempHost = new ElementHost
+            {
+                Child = hall3DModelViewer,
+            };
+
+            Controls.Add(tempHost);
+            Application.DoEvents();
+            Controls.Remove(tempHost);
+            tempHost.Child = null;
+            hall3DModelViewerHost.Child = hall3DModelViewer;
+        }
+
+        // method to initialize dropdown items for ComboNumericTextBox controls
         private void InitializeDropdownItems()
         {
             // positions [m]
@@ -1224,33 +1244,36 @@ namespace Hallbridger
                 }
             }
         }
-
+     
         // tab change event handler
         private void TabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
             // refresh component views for the tab that has just been selected
-            switch (mainTabControl.SelectedTab.Name)
+            TabPage currentTab = mainTabControl.SelectedTab;
+
+            LayOutComponents(currentTab);
+
+            // show 3D element properties only in acoustics tab
+            if (currentTab == acousticsTab)
             {
-                case "movingElementsTab":
-                    LayOutComponents_MovingElementsTab();
+                foreach (var modelElementPropertiesForm in selected3DElementsPropertyWindows.Values)
+                {
+                    modelElementPropertiesForm?.Show();
+                }
+            }
+            else
+            {
+                foreach (var modelElementPropertiesForm in selected3DElementsPropertyWindows.Values)
+                {
+                    modelElementPropertiesForm?.Hide();
+                }
+            }
 
-                    foreach (var modelElementPropertiesForm in selected3DElementsPropertyWindows.Values)
-                    {
-                        modelElementPropertiesForm?.Hide(); // show 3D element properties only in acoustics tab
-                    }
-
-                    break;
-                case "acousticsTab":
-                    LayOutComponents_AcousticsTab();
-                    globalRtDataGridView.ClearSelection();
-
-                    foreach (var modelElementPropertiesForm in selected3DElementsPropertyWindows.Values)
-                    {
-                        modelElementPropertiesForm?.Show(); // show 3D element properties only in acoustics tab
-                    }
-                    break;
-                default:
-                    break;
+            // clear cell selection of DataGridViews in the other tabs at the first tab change
+            if (isFirstTabChange)
+            {
+                globalRtDataGridView.ClearSelection();
+                isFirstTabChange = false;
             }
         }
 
@@ -1753,44 +1776,139 @@ namespace Hallbridger
         /* graphical layout auxiliary methods
          */
 
-        // auxiliary methods for moving element tab component layout
-        private void LayOutComponents_MovingElementsTab()
+        // auxiliary method for laying out components in a specified tab of the form
+        private void LayOutComponents(TabPage tab)
         {
-            // layout constants
-            int topMargin = 16;
-            int groupTitleHeight = 30; // height reserved for group titles
-            int titleSpacing = 6; // distance between group title and DataGridViews
-            int labelHeight = 20;
-            int labelSpacing = 4; // distance between DataGridView labels and DataGridViews
-            int groupSpacing = 32; // distance between data groups
-            int separatorHeight = 2; // height of the separator line
-            int buttonHeight = loadRealHallDataButton.Height;
-            int buttonBottomMargin = 48;
-            int DataGridViewSpacing = 12; // distance between DataGridViews
-            int startX = 20; // starting positions for data groups
+            string tabName = tab?.Name;
 
-            // computed values
-            int availableWidth = movingElementsTab.ClientSize.Width - 40;
-            int DataGridViewWidth = (availableWidth - 2 * DataGridViewSpacing) / 3;
-            int realHallGroupHeight = groupTitleHeight + titleSpacing + labelHeight + labelSpacing;
-            int realHall3DModelGroupHeight = groupTitleHeight + titleSpacing + labelHeight + labelSpacing;
-            int separatorMargin = groupSpacing / 2 + separatorHeight + 8;
-            int totalDataGridViewHeight = movingElementsTab.ClientSize.Height - topMargin - realHallGroupHeight - realHall3DModelGroupHeight - separatorMargin - buttonHeight - buttonBottomMargin;
-            int DataGridViewHeight = totalDataGridViewHeight / 2; //each group takes half of the available space
+            switch (tabName)
+            {
+                case "movingElementsTab":
+                { // braces to limit scope of variables
+                    // layout constants
+                    int topMargin = 16;
+                    int groupTitleHeight = 30; // height reserved for group titles
+                    int titleSpacing = 6; // distance between group title and DataGridViews
+                    int labelHeight = 20;
+                    int labelSpacing = 4; // distance between DataGridView labels and DataGridViews
+                    int groupSpacing = 32; // distance between data groups
+                    int separatorHeight = 2; // height of the separator line
+                    int buttonHeight = loadRealHallDataButton.Height;
+                    int buttonBottomMargin = 48;
+                    int DataGridViewSpacing = 12; // distance between DataGridViews
+                    int startX = 20; // starting positions for data groups
 
-            // place elements
-            PlaceGroupsAndSeparator_MovingElementsTab(topMargin, groupTitleHeight, titleSpacing, labelHeight, labelSpacing, groupSpacing, separatorHeight, startX, availableWidth, DataGridViewHeight);
-            PlaceDataGridViews_MovingElementsTab(topMargin, groupTitleHeight, titleSpacing, labelHeight, labelSpacing, DataGridViewSpacing, startX, DataGridViewWidth, DataGridViewHeight, groupSpacing, separatorHeight);
-            PlaceButtons_MovingElementsTab(buttonHeight);
+                    // computed values
+                    int availableWidth = movingElementsTab.ClientSize.Width - 40;
+                    int DataGridViewWidth = (availableWidth - 2 * DataGridViewSpacing) / 3;
+                    int realHallGroupHeight = groupTitleHeight + titleSpacing + labelHeight + labelSpacing;
+                    int realHall3DModelGroupHeight = groupTitleHeight + titleSpacing + labelHeight + labelSpacing;
+                    int separatorMargin = groupSpacing / 2 + separatorHeight + 8;
+                    int totalDataGridViewHeight = movingElementsTab.ClientSize.Height - topMargin - realHallGroupHeight - realHall3DModelGroupHeight - separatorMargin - buttonHeight - buttonBottomMargin;
+                    int DataGridViewHeight = totalDataGridViewHeight / 2; //each group takes half of the available space
 
-            // adapt DataGridView columns to available width
-            AdaptDataGridViewSizes(realHallStagecraftDataGridView);
-            AdaptDataGridViewSizes(realHallLeftPanelsDataGridView);
-            AdaptDataGridViewSizes(realHallRightPanelsDataGridView);
-            AdaptDataGridViewSizes(hall3DModelStagecraftDataGridView);
-            AdaptDataGridViewSizes(hall3DModelLeftPanelsDataGridView);
-            AdaptDataGridViewSizes(hall3DModelRightPanelsDataGridView);
+                    // place elements
+                    PlaceGroupsAndSeparator_MovingElementsTab(topMargin, groupTitleHeight, titleSpacing, labelHeight, labelSpacing, groupSpacing, separatorHeight, startX, availableWidth, DataGridViewHeight);
+                    PlaceDataGridViews_MovingElementsTab(topMargin, groupTitleHeight, titleSpacing, labelHeight, labelSpacing, DataGridViewSpacing, startX, DataGridViewWidth, DataGridViewHeight, groupSpacing, separatorHeight);
+                    PlaceButtons_MovingElementsTab(buttonHeight);
+
+                    // adapt DataGridView columns to available width
+                    AdaptDataGridViewSizes(realHallStagecraftDataGridView);
+                    AdaptDataGridViewSizes(realHallLeftPanelsDataGridView);
+                    AdaptDataGridViewSizes(realHallRightPanelsDataGridView);
+                    AdaptDataGridViewSizes(hall3DModelStagecraftDataGridView);
+                    AdaptDataGridViewSizes(hall3DModelLeftPanelsDataGridView);
+                    AdaptDataGridViewSizes(hall3DModelRightPanelsDataGridView);
+
+                    break;
+                }
+                case "acousticsTab":
+                { // braces to limit scope of variables
+                  // layout constants
+                    int margin = 20;
+                    int labelHeight = 28;
+                    int labelSpacing = 8;
+                    int viewerMargin = 24;
+                    int minGridWidth = 240;
+                    int minViewerWidth = 320;
+                    int gridHeight = 300;
+                    int buttonSpacing = 16;
+                    int controlsMargin = 12;
+
+                    // proportionally adapt the width of the elements depending on the window size, from minWidth (by minWidth of the window) to maxWidth (by maxWidth of the window)
+                    int tabWidth = acousticsTab.Width;
+                    int tabHeight = acousticsTab.Height;
+
+                    double minWidth = 800.0, maxWidth = 1920.0;
+                    double minProportion = 0.5, maxProportion = 0.3;
+                    double proportion = minProportion;
+
+                    if (tabWidth > minWidth)
+                    {
+                        proportion = minProportion - (tabWidth - minWidth) * (minProportion - maxProportion) / (maxWidth - minWidth);
+
+                        if (proportion < maxProportion)
+                        {
+                            proportion = maxProportion;
+                        }
+                    }
+
+                    int gridWidth = (int)Math.Round(tabWidth * proportion);
+
+                    if (gridWidth < minGridWidth)
+                    {
+                        gridWidth = minGridWidth;
+                    }
+
+                    int viewerWidth = tabWidth - gridWidth - 3 * viewerMargin;
+
+                    if (viewerWidth < minViewerWidth)
+                    {
+                        viewerWidth = minViewerWidth;
+                    }
+
+                    // place global RT values DataGridView
+                    globalRtDataGridView.Left = margin;
+                    globalRtDataGridView.Top = tabHeight - gridHeight - margin;
+                    globalRtDataGridView.Width = gridWidth;
+                    globalRtDataGridView.Height = gridHeight;
+
+                    // place global RT values DataGridView title
+                    globalRtDataGridViewLabel.Left = globalRtDataGridView.Left + (globalRtDataGridView.Width - globalRtDataGridViewLabel.Width) / 2;
+                    globalRtDataGridViewLabel.Width = gridWidth;
+                    globalRtDataGridViewLabel.Height = labelHeight;
+                    globalRtDataGridViewLabel.Top = globalRtDataGridView.Top - labelHeight - labelSpacing;
+
+                    // place 3D hall viewer
+                    int controlsHeight = Math.Max(repositionButton.Height, highSpeedCheckBox.Height);
+
+                    hall3DModelViewerHost.Left = gridWidth + 2 * viewerMargin;
+                    hall3DModelViewerHost.Top = margin;
+                    hall3DModelViewerHost.Width = viewerWidth;
+                    hall3DModelViewerHost.Height = tabHeight - 2 * margin - controlsHeight - controlsMargin; // compute height to leave room for Button and Checkbox
+
+                    // place "Reposition" button and "High performance mode" checkbox one aside the other in the bottom-right part of the tab below the 3D viewer
+                    int totalControlsWidth = repositionButton.Width + buttonSpacing + highSpeedCheckBox.Width;
+                    int controlsLeft = hall3DModelViewerHost.Left + hall3DModelViewerHost.Width - totalControlsWidth;
+                    int controlsTop = hall3DModelViewerHost.Top + hall3DModelViewerHost.Height + controlsMargin;
+
+                    repositionButton.Left = controlsLeft;
+                    repositionButton.Top = controlsTop;
+
+                    highSpeedCheckBox.Left = repositionButton.Right + buttonSpacing;
+                    highSpeedCheckBox.Top = controlsTop + (repositionButton.Height - highSpeedCheckBox.Height) / 2;
+
+                    // adapt DataGridView sizes to available room
+                    AdaptDataGridViewSizes(globalRtDataGridView);
+
+                    break;
+                }
+                default:
+                    break;
+            }
         }
+
+        // auxiliary methods for Moving element tab component layout
 
         private void PlaceGroupsAndSeparator_MovingElementsTab(int topMargin, int groupTitleHeight, int titleSpacing, int labelHeight, int labelSpacing, int groupSpacing, int separatorHeight, int startX, int availableWidth, int DataGridViewHeight)
         {
@@ -1905,86 +2023,6 @@ namespace Hallbridger
 
             highlightDataDiscrepanciesCheckBox.Left = exportHall3DModelDataButton.Right + checkBoxSpacing;
             highlightDataDiscrepanciesCheckBox.Top = buttonsY + (buttonHeight - highlightDataDiscrepanciesCheckBox.Height) / 2;
-        }
-
-        // auxiliary methods for acoustics tab component layout
-        private void LayOutComponents_AcousticsTab()
-        {
-            int margin = 20;
-            int labelHeight = 28;
-            int labelSpacing = 8;
-            int viewerMargin = 24;
-            int minGridWidth = 240;
-            int minViewerWidth = 320;
-            int gridHeight = 300;
-            int buttonSpacing = 16;
-            int controlsMargin = 12;
-
-            // proportionally adapt the width of the elements depending on the window size, from minWidth (by minWidth of the window) to maxWidth (by maxWidth of the window)
-            int tabWidth = acousticsTab.Width;
-            int tabHeight = acousticsTab.Height;
-
-            double minWidth = 800.0, maxWidth = 1920.0;
-            double minProportion = 0.5, maxProportion = 0.3;
-            double proportion = minProportion;
-
-            if (tabWidth > minWidth)
-            {
-                proportion = minProportion - (tabWidth - minWidth) * (minProportion - maxProportion) / (maxWidth - minWidth);
-
-                if (proportion < maxProportion)
-                {
-                    proportion = maxProportion;
-                }
-            }
-
-            int gridWidth = (int)Math.Round(tabWidth * proportion);
-
-            if (gridWidth < minGridWidth)
-            {
-                gridWidth = minGridWidth;
-            }
-
-            int viewerWidth = tabWidth - gridWidth - 3 * viewerMargin;
-
-            if (viewerWidth < minViewerWidth)
-            {
-                viewerWidth = minViewerWidth;
-            }
-
-            // place global RT values DataGridView
-            globalRtDataGridView.Left = margin;
-            globalRtDataGridView.Top = tabHeight - gridHeight - margin;
-            globalRtDataGridView.Width = gridWidth;
-            globalRtDataGridView.Height = gridHeight;
-
-            // place global RT values DataGridView title
-            globalRtDataGridViewLabel.Left = globalRtDataGridView.Left + (globalRtDataGridView.Width - globalRtDataGridViewLabel.Width) / 2;
-            globalRtDataGridViewLabel.Width = gridWidth;
-            globalRtDataGridViewLabel.Height = labelHeight;
-            globalRtDataGridViewLabel.Top = globalRtDataGridView.Top - labelHeight - labelSpacing;
-
-            // place 3D hall viewer
-            int controlsHeight = Math.Max(repositionButton.Height, highSpeedCheckBox.Height);
-
-            hall3DModelViewerHost.Left = gridWidth + 2 * viewerMargin;
-            hall3DModelViewerHost.Top = margin;
-            hall3DModelViewerHost.Width = viewerWidth;
-            hall3DModelViewerHost.Height = tabHeight - 2 * margin - controlsHeight - controlsMargin; // compute height to leave room for Button and Checkbox
-
-            // place "Reposition" button and "High performance mode" checkbox one aside the other in the bottom-right part of the tab below the 3D viewer
-            int totalControlsWidth = repositionButton.Width + buttonSpacing + highSpeedCheckBox.Width;
-            int controlsLeft = hall3DModelViewerHost.Left + hall3DModelViewerHost.Width - totalControlsWidth;
-            int controlsTop = hall3DModelViewerHost.Top + hall3DModelViewerHost.Height + controlsMargin;
-
-            repositionButton.Left = controlsLeft;
-            repositionButton.Top = controlsTop;
-
-            highSpeedCheckBox.Left = repositionButton.Right + buttonSpacing;
-            highSpeedCheckBox.Top = controlsTop + (repositionButton.Height - highSpeedCheckBox.Height) / 2;
-
-            // adapt DataGridView sizes to available room
-            AdaptDataGridViewSizes(globalRtDataGridView);
         }
 
         /* auxiliary method to adapt row and column sizes of a DataGridView to content:
@@ -2196,23 +2234,17 @@ namespace Hallbridger
             hall3DModelRightPanelControlUnitsComposition.Add("PD.025", new List<string> { "0eZ9VepF9FQO1sL1JkD$92", "0eZ9VepF9FQO1sL1JkD$9v" });
             hall3DModelRightPanelControlUnitsComposition.Add("PD.026", new List<string> { "0eZ9VepF9FQO1sL1JkD$9c", "0eZ9VepF9FQO1sL1JkD$9d" }); // the second panel array has no real correspondence
 
-            // create dummy WPF Control and discard it just to initialize the 3D viewer (workaround for WPF Controls needing to be viewed in order to be correctly included in the UI tree)
-            var tempHost = new ElementHost
-            {
-                Child = hall3DModelViewer,
-            };
+            // initialize 3D model viewer
+            Initialize3DModelViewer();
 
-            Controls.Add(tempHost);
-            System.Windows.Forms.Application.DoEvents();
-            Controls.Remove(tempHost);
-            tempHost.Child = null;
-            hall3DModelViewerHost.Child = hall3DModelViewer;
-
+            // initialize dropdown items for the ComboNumericTextBox control
             InitializeDropdownItems();
 
             // lay form elements out
-            LayOutComponents_MovingElementsTab();
-            LayOutComponents_AcousticsTab();
+            foreach (TabPage tab in mainTabControl.TabPages)
+            {
+                LayOutComponents(tab);
+            }
         }
 
         protected override void OnResize(EventArgs e)
@@ -2220,19 +2252,7 @@ namespace Hallbridger
             base.OnResize(e);
 
             // refresh component views of the current tab
-            string tabName = mainTabControl.SelectedTab?.Name;
-            if (tabName != null)
-            {
-                switch (tabName)
-                {
-                    case "movingElementsTab":
-                        LayOutComponents_MovingElementsTab();
-                        break;
-                    case "acousticsTab":
-                        LayOutComponents_AcousticsTab();
-                        break;
-                }
-            }
+            LayOutComponents(mainTabControl.SelectedTab);
         }
     }
 
