@@ -37,10 +37,10 @@ namespace Hallbridger
         {
             // INI file initialization
             this.iniFile = new IniFile(iniPath);
-            LoadIniValues();
 
             // component initialization
             InitializeComponents();
+            LoadIniValues();
         }
 
         private void InitializeComponents()
@@ -275,7 +275,7 @@ namespace Hallbridger
                 return;
             }
 
-            // save configurations to ini file
+            // save configurations to INI file
             iniFile.Write("RealHallFileCheck", "Directory", SplitPath(realHallFileCheckPathTextBox.Text).fileDirectory);
             iniFile.Write("RealHallFileCheck", "FileName", SplitPath(realHallFileCheckPathTextBox.Text).fileName);
             iniFile.Write("RealHallFileCheck", "Interval", realHallFileCheckInterval.ToString());

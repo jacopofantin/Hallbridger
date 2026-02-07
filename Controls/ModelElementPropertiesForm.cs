@@ -150,6 +150,7 @@ namespace Hallbridger.Controls
             if (!string.IsNullOrWhiteSpace(name))
             {
                 this.Text = $"3D element properties: {name}"; // include name in form title
+
                 namePrefixLabel.Text = "Name:";
                 namePrefixLabel.Visible = true;
                 nameValueLabel.Text = name;
@@ -159,6 +160,7 @@ namespace Hallbridger.Controls
             else
             {
                 this.Text = "3D element properties";
+
                 namePrefixLabel.Visible = false;
                 nameValueLabel.Visible = false;
             }

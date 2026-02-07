@@ -1,6 +1,8 @@
 ﻿using Hallbridger.Controls;
+using Microsoft.Ajax.Utilities;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms; // for WinForms controls
 using System.Windows.Forms.Integration; // for ElementHost (WPF in WinForms)
+using System.Windows.Markup;
 using Xbim.Ifc;
 using Xbim.Ifc4.Interfaces;
 using Xbim.ModelGeometry.Scene;
@@ -66,11 +69,6 @@ namespace Hallbridger
 
         // dictionary to store selected cells in DataGridViews (needed since both sorting and data refresh cause the user-defined selection to be lost)
         Dictionary<DataGridView, List<(string RowId, int ColumnIndex)>> selectedCells = new Dictionary<DataGridView, List<(string RowId, int ColumnIndex)>>();
-
-        // class-level variables to keep track of data discrepancy highlightability
-        private bool stagecraftDataDiscrepancyHighlightable = false;
-        private bool leftPanelDataDiscrepancyHighlightable = false;
-        private bool rightPanelDataDiscrepancyHighlightable = false;
 
         // class-level variables for storing the 3D hall model and its file path
         private IfcStore hall3DModel;
@@ -479,12 +477,10 @@ namespace Hallbridger
         /* method to populate a DataGridView:
          * dgv: DataGridView to populate;
          * data: dictionary containing the values to populate dgv with;
-         * compareDgv: DataGridView populated with compareData;
-         * compareData: dictionary containing the values to compare data with;
          * conversionMethod: method to convert numerical values from one unit of measurement to another;
          * formattingMethod: method to format numerical values into strings with unit of measurement for display
          */
-        private void ViewLoadedData(DataGridView dgv, Dictionary<string, double?> data, DataGridView compareDgv, Dictionary<string, double?> compareData, Func<double?, double> conversionMethod, Func<double, string> formattingMethod)
+        private void ViewLoadedData(DataGridView dgv, Dictionary<string, double?> data, Func<double?, double> conversionMethod, Func<double, string> formattingMethod)
         {
             // save current data sorting
             GetDataSorting(dgv, out var dataGridViewSortedColumn, out var dataGridViewSortDirection);
@@ -494,9 +490,6 @@ namespace Hallbridger
 
             // save current cell selection
             selectedCells[dgv] = GetCellSelection(dgv);
-
-            // save current cell background colors
-            SaveCellBackgroundColors(dgv);
 
             // empty and refill the DataGridView
             dgv.Rows.Clear();
@@ -517,19 +510,6 @@ namespace Hallbridger
             if (selectedCells.TryGetValue(dgv, out var cellSelection))
             {
                 SetCellSelection(dgv, cellSelection);
-            }
-
-            // if both real and 3D hall data have already been loaded, update cell background colors based on data discrepancies
-            if (dgv.Rows.Count > 0 && compareDgv.Rows.Count > 0)
-            {
-                UpdateCellBackgroundColors(dgv, data, compareDgv, compareData);
-
-                // if "Automatic discrepancy highlighting" option is enabled, highlight differences between the data
-                if (automaticDiscrepancyHighlightingMenuEntry.Checked)
-                {
-                    ApplyCellBackgroundColors(dgv);
-                    ApplyCellBackgroundColors(compareDgv);
-                }
             }
         }
 
@@ -555,110 +535,6 @@ namespace Hallbridger
 
         /* main event handlers
          */
-
-        // timer event handlers
-        private async void RealHallFileCheckTimer_Tick(object sender, EventArgs e)
-        {
-            string realHallFileCheckPath = Path.Combine(realHallFileCheckDirectory, realHallFileCheckName);
-            
-            if (File.Exists(realHallFileCheckPath))
-            {
-                string apiEndpoint;
-                string realHallFileExtension = Path.GetExtension(realHallFileCheckPath).ToLowerInvariant();
-
-                switch (realHallFileExtension)
-                {
-                    case ".txt":
-                        apiEndpoint = "https://localhost:44307/api/import/txt";
-                        break;
-                    case ".xls":
-                    case ".xlsx":
-                        apiEndpoint = "https://localhost:44307/api/import/excel";
-                        break;
-                    case ".json":
-                        apiEndpoint = "https://localhost:44307/api/import/json";
-                        break;
-                    case ".xml":
-                        apiEndpoint = "https://localhost:44307/api/import/xml";
-                        break;
-                    default:
-                        System.Windows.Forms.MessageBox.Show("Real hall file extension not supported: " + realHallFileExtension);
-                        return;
-                }
-
-                // import data from the real hall and display them in the corresponding DataGridViews
-                await LoadRealHallData(apiEndpoint, realHallFileCheckPath);
-
-                ViewLoadedData(realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
-                ViewLoadedData(realHallLeftPanelsDataGridView, realHallLeftPanelApertures, hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-                ViewLoadedData(realHallRightPanelsDataGridView, realHallRightPanelApertures, hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-
-                // update the highlightability of data discrepancies
-                UpdateDataDiscrepancyHighlightability();
-            }
-        }
-
-        private async void Hall3DModelFileCheckTimer_Tick(object sender, EventArgs e)
-        {
-            string hall3DModelFileCheckPath = Path.Combine(hall3DModelFileCheckDirectory, hall3DModelFileCheckName);
-
-            if (File.Exists(hall3DModelFileCheckPath))
-            {
-                string hall3DModelFileExtension = Path.GetExtension(hall3DModelFileCheckPath).ToLowerInvariant();
-
-                switch (hall3DModelFileExtension)
-                {
-                    case ".ifc":
-                        break;
-                    default:
-                        System.Windows.Forms.MessageBox.Show("3D hall file extension not supported: " + hall3DModelFileExtension);
-                        return;
-                }
-
-                switch (hall3DModelFileCheckOperation)
-                {
-                    case "Load":
-                        break;
-                    case "Update":
-                        // first, check if at least some real hall data have been previously loaded
-                        if (realHallStagecraftEquipmentPositions.Count == 0 && realHallLeftPanelApertures.Count == 0 && realHallRightPanelApertures.Count == 0)
-                        {
-                            // no real hall data loaded at all
-                            System.Windows.Forms.MessageBox.Show("No real hall data loaded. Please load hall data before updating the 3D model.");
-                            return;
-                        }
-
-                        // second, load a 3D hall if it hasn't been previously loaded
-                        if (hall3DModel == null)
-                        {
-                            Load3DHall(hall3DModelFileCheckPath);
-                        }
-
-                        // update the 3D hall with the loaded real hall data
-                        Update3DHall();
-                        break;
-                    default:
-                        System.Windows.Forms.MessageBox.Show("Operation on 3D hall file not supported: " + hall3DModelFileCheckOperation);
-                        return;
-                }
-
-                // import the 3D hall and display its in the corresponding DataGridViews
-                Load3DHall(hall3DModelFileCheckPath);
-
-                ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
-                ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-                ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-
-                // update the highlightability of data discrepancies
-                UpdateDataDiscrepancyHighlightability();
-
-                // load 3D hall on viewer
-                View3DHall();
-
-                // identify current panel configuration in the 3D hall, if possible, and highlight it in the global RT values DataGridView and in the 3D model
-                IdentifyCurrent3DHallPanelConfiguration();
-            }
-        }
 
         // button event handlers
         private async void LoadRealHallDataButton_OnClick(object sender, EventArgs e)
@@ -695,12 +571,14 @@ namespace Hallbridger
                     // import data from the real hall and display them in the corresponding DataGridViews
                     await LoadRealHallData(apiEndpoint, loadRealHallDataDialog.FileName);
 
-                    ViewLoadedData(realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
-                    ViewLoadedData(realHallLeftPanelsDataGridView, realHallLeftPanelApertures, hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-                    ViewLoadedData(realHallRightPanelsDataGridView, realHallRightPanelApertures, hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+                    ViewLoadedData(realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
+                    ViewLoadedData(realHallLeftPanelsDataGridView, realHallLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+                    ViewLoadedData(realHallRightPanelsDataGridView, realHallRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
 
-                    // update the highlightability of data discrepancies
-                    UpdateDataDiscrepancyHighlightability();
+                    // update data discrepancies highlighting
+                    UpdateDataDiscrepancyHighlighting(realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions);
+                    UpdateDataDiscrepancyHighlighting(realHallLeftPanelsDataGridView, realHallLeftPanelApertures, hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures);
+                    UpdateDataDiscrepancyHighlighting(realHallRightPanelsDataGridView, realHallRightPanelApertures, hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures);
                 }
             }
         }
@@ -729,12 +607,14 @@ namespace Hallbridger
                     // import the 3D hall and display its data in the corresponding DataGridViews
                     Load3DHall(hall3DModelFileCheckPath);
 
-                    ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
-                    ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-                    ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+                    ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
+                    ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+                    ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
 
-                    // update the highlightability of data discrepancies
-                    UpdateDataDiscrepancyHighlightability();
+                    // update data discrepancies highlighting
+                    UpdateDataDiscrepancyHighlighting(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions);
+                    UpdateDataDiscrepancyHighlighting(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures);
+                    UpdateDataDiscrepancyHighlighting(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures);
 
                     // load 3D hall on viewer
                     View3DHall();
@@ -787,12 +667,14 @@ namespace Hallbridger
             // after the update, re-import the 3D hall and display its data in the corresponding DataGridViews
             Load3DHall(hall3DModelFilePath);
 
-            ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
-            ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-            ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+            ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
+            ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+            ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
 
-            // update the highlightability of data discrepancies
-            UpdateDataDiscrepancyHighlightability();
+            // update data discrepancies highlighting
+            UpdateDataDiscrepancyHighlighting(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions);
+            UpdateDataDiscrepancyHighlighting(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures);
+            UpdateDataDiscrepancyHighlighting(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures);
 
             // load 3D hall on viewer
             View3DHall();
@@ -807,10 +689,12 @@ namespace Hallbridger
             {
                 saveHall3DModelDataDialog.Title = "Export 3D hall data";
                 saveHall3DModelDataDialog.Filter = "Text file (*.txt)|*.txt|Excel spreadsheet (*.xls;*.xlsx)|*.xls;*.xlsx|JavaScript Object Notation file (*.json)|*.json|eXtensible Markup Language file (*.xml)|*.xml| All files (*.*)|*.*";
+                
                 if (saveHall3DModelDataDialog.ShowDialog() == DialogResult.OK)
                 {
                     string apiEndpoint;
                     string hall3DModelDataFileExtension = Path.GetExtension(saveHall3DModelDataDialog.FileName).ToLowerInvariant();
+                    
                     switch (hall3DModelDataFileExtension)
                     {
                         case ".txt":
@@ -836,17 +720,125 @@ namespace Hallbridger
             }
         }
 
+        // timer event handlers
+        private async void RealHallFileCheckTimer_Tick(object sender, EventArgs e)
+        {
+            string realHallFileCheckPath = Path.Combine(realHallFileCheckDirectory, realHallFileCheckName);
+
+            if (File.Exists(realHallFileCheckPath))
+            {
+                string apiEndpoint;
+                string realHallFileExtension = Path.GetExtension(realHallFileCheckPath).ToLowerInvariant();
+
+                switch (realHallFileExtension)
+                {
+                    case ".txt":
+                        apiEndpoint = "https://localhost:44307/api/import/txt";
+                        break;
+                    case ".xls":
+                    case ".xlsx":
+                        apiEndpoint = "https://localhost:44307/api/import/excel";
+                        break;
+                    case ".json":
+                        apiEndpoint = "https://localhost:44307/api/import/json";
+                        break;
+                    case ".xml":
+                        apiEndpoint = "https://localhost:44307/api/import/xml";
+                        break;
+                    default:
+                        System.Windows.Forms.MessageBox.Show("Real hall file extension not supported: " + realHallFileExtension);
+                        return;
+                }
+
+                // import data from the real hall and display them in the corresponding DataGridViews
+                await LoadRealHallData(apiEndpoint, realHallFileCheckPath);
+
+                ViewLoadedData(realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
+                ViewLoadedData(realHallLeftPanelsDataGridView, realHallLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+                ViewLoadedData(realHallRightPanelsDataGridView, realHallRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+
+                // update data discrepancies highlighting
+                UpdateDataDiscrepancyHighlighting(realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions);
+                UpdateDataDiscrepancyHighlighting(realHallLeftPanelsDataGridView, realHallLeftPanelApertures, hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures);
+                UpdateDataDiscrepancyHighlighting(realHallRightPanelsDataGridView, realHallRightPanelApertures, hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures);
+            }
+        }
+
+        private async void Hall3DModelFileCheckTimer_Tick(object sender, EventArgs e)
+        {
+            string hall3DModelFileCheckPath = Path.Combine(hall3DModelFileCheckDirectory, hall3DModelFileCheckName);
+
+            if (File.Exists(hall3DModelFileCheckPath))
+            {
+                string hall3DModelFileExtension = Path.GetExtension(hall3DModelFileCheckPath).ToLowerInvariant();
+
+                switch (hall3DModelFileExtension)
+                {
+                    case ".ifc":
+                        break;
+                    default:
+                        System.Windows.Forms.MessageBox.Show("3D hall file extension not supported: " + hall3DModelFileExtension);
+                        return;
+                }
+
+                switch (hall3DModelFileCheckOperation)
+                {
+                    case "Load":
+                        break;
+                    case "Update":
+                        // first, check if at least some real hall data have been previously loaded
+                        if (realHallStagecraftEquipmentPositions.Count == 0 && realHallLeftPanelApertures.Count == 0 && realHallRightPanelApertures.Count == 0)
+                        {
+                            // no real hall data loaded at all
+                            System.Windows.Forms.MessageBox.Show("No real hall data loaded. Please load hall data before updating the 3D model.");
+                            return;
+                        }
+
+                        // second, load a 3D hall if it hasn't been previously loaded
+                        if (hall3DModel == null)
+                        {
+                            Load3DHall(hall3DModelFileCheckPath);
+                        }
+
+                        // update the 3D hall with the loaded real hall data
+                        Update3DHall();
+                        break;
+                    default:
+                        System.Windows.Forms.MessageBox.Show("Operation on 3D hall file not supported: " + hall3DModelFileCheckOperation);
+                        return;
+                }
+
+                // import the 3D hall and display its in the corresponding DataGridViews
+                Load3DHall(hall3DModelFileCheckPath);
+
+                ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
+                ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+                ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+
+                // update data discrepancies highlighting
+                UpdateDataDiscrepancyHighlighting(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions);
+                UpdateDataDiscrepancyHighlighting(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures);
+                UpdateDataDiscrepancyHighlighting(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures);
+
+                // load 3D hall on viewer
+                View3DHall();
+
+                // identify current panel configuration in the 3D hall, if possible, and highlight it in the global RT values DataGridView and in the 3D model
+                IdentifyCurrent3DHallPanelConfiguration();
+            }
+        }
+
         // checkbox event handlers
-        private void HighlightDataDiscrepanciesCheckBox_CheckChanged(object sender, EventArgs e)
+        private void HighlightDataDiscrepanciesCheckBox_Click(object sender, EventArgs e)
         {
             if (!highlightDataDiscrepanciesCheckBox.Checked)
             {
                 // discrepancies highlighting used to be switched on and is now off, hide it
                 ResetCellBackgroundColors(realHallStagecraftDataGridView);
-                ResetCellBackgroundColors(realHallLeftPanelsDataGridView);
-                ResetCellBackgroundColors(realHallRightPanelsDataGridView);
                 ResetCellBackgroundColors(hall3DModelStagecraftDataGridView);
+                ResetCellBackgroundColors(realHallLeftPanelsDataGridView);
                 ResetCellBackgroundColors(hall3DModelLeftPanelsDataGridView);
+                ResetCellBackgroundColors(realHallRightPanelsDataGridView);
                 ResetCellBackgroundColors(hall3DModelRightPanelsDataGridView);
             }
             else
@@ -869,8 +861,6 @@ namespace Hallbridger
         // menu event handlers
         private void AutomaticDiscrepancyHighlightingMenuEntry_CheckedChanged(object sender, EventArgs e)
         {
-            highlightDataDiscrepanciesCheckBox.Checked = automaticDiscrepancyHighlightingMenuEntry.Checked;
-
             // store the new setting into the configuration file
             var iniFile = new IniFile(iniPath);
             iniFile.Write("AutomaticDiscrepancyHighlightingOption", "Enabled", automaticDiscrepancyHighlightingMenuEntry.Checked
@@ -963,23 +953,23 @@ namespace Hallbridger
         // open property windows for newly selected 3D elements
         int propertyWindowIndex = 0;
 
-            foreach (var selected3DElement in selected3DElements)
+            foreach (var element in selected3DElements)
             {
-                if (!selected3DElementsPropertyWindows.ContainsKey(selected3DElement.GlobalId))
+                if (!selected3DElementsPropertyWindows.ContainsKey(element.GlobalId))
                 {
                     // extract basic info from selected entity
-                    string name = selected3DElement.Name ?? selected3DElement.ToString();
-                    string globalId = selected3DElement?.GlobalId ?? "";
-                    string instanceType = selected3DElement.GetType().Name ?? "";
+                    string name = element.Name ?? element.ToString();
+                    string globalId = element?.GlobalId ?? "";
+                    string instanceType = element.GetType().Name ?? "";
 
                     // extract additional info depending on element type
                     string typeName = "";
 
-                    if (selected3DElement is IIfcBuildingElementProxy buildingElement && buildingElement.IsTypedBy.First().RelatingType != null)
+                    if (element is IIfcBuildingElementProxy buildingElement && buildingElement.IsTypedBy.First().RelatingType != null)
                     {
                         typeName = buildingElement.IsTypedBy.First().RelatingType.Name ?? "";
                     }
-                    else if (selected3DElement is IIfcFurnishingElement furnishingElement && furnishingElement.IsTypedBy.First().RelatingType != null)
+                    else if (element is IIfcFurnishingElement furnishingElement && furnishingElement.IsTypedBy.First().RelatingType != null)
                     {
                         typeName = furnishingElement.IsTypedBy.First().RelatingType.Name ?? "";
                     }
@@ -1083,8 +1073,9 @@ namespace Hallbridger
                     modelElementPropertiesForm.BringToFront();
 
                     // store reference to the new 3D element-property window pair
-                    selected3DElementsPropertyWindows[selected3DElement.GlobalId] = modelElementPropertiesForm;
+                    selected3DElementsPropertyWindows[element.GlobalId] = modelElementPropertiesForm;
                 }
+
                 propertyWindowIndex++;
             }
         }
@@ -1154,7 +1145,10 @@ namespace Hallbridger
                                     }
 
                                     // refresh view
-                                    ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
+                                    ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
+
+                                    // update data discrepancies highlighting
+                                    UpdateDataDiscrepancyHighlighting(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, realHallStagecraftDataGridView, realHallStagecraftEquipmentPositions);
                                 }
                             }
                         }
@@ -1200,8 +1194,12 @@ namespace Hallbridger
                                     }
 
                                     // refresh views
-                                    ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
-                                    ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+                                    ViewLoadedData(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+                                    ViewLoadedData(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, ConvertMillimetersToDecimalDegrees, FormatDecimalDegrees);
+
+                                    // update data discrepancies highlighting
+                                    UpdateDataDiscrepancyHighlighting(hall3DModelLeftPanelsDataGridView, hall3DModelLeftPanelApertures, realHallLeftPanelsDataGridView, realHallLeftPanelApertures);
+                                    UpdateDataDiscrepancyHighlighting(hall3DModelRightPanelsDataGridView, hall3DModelRightPanelApertures, realHallRightPanelsDataGridView, realHallRightPanelApertures);
                                 }
                             }
                         }
@@ -1312,8 +1310,7 @@ namespace Hallbridger
 
                     // get value of the 3D property
                     if (double.TryParse(positionProperty?.NominalValue?.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double position))
-
-                        {
+                    {
                             return position;
                     }
 
@@ -1530,17 +1527,17 @@ namespace Hallbridger
             {
                 string rowId = row.Cells[0].Value?.ToString();
 
-                if (rowId != null && cellColors[dgv].TryGetValue(rowId, out var color))
+                if (rowId != null && cellColors[dgv].TryGetValue(rowId, out var color) && row.DefaultCellStyle.BackColor != color)
                 {
                     row.DefaultCellStyle.BackColor = color;
                 }
             }
         }
 
-        // auxiliary method to update cell background colors of a DataGridView couple (highlights data discrepancies between two DataGridViews given their data dictionaries)
+        // auxiliary method to update cell background colors of a DataGridView couple containing corresponding data (highlights data discrepancies between two DataGridViews given their data dictionaries having corresponding keys)
         private void UpdateCellBackgroundColors(DataGridView dgv, Dictionary<string, double?> data, DataGridView cmpDgv, Dictionary<string, double?> cmpData)
         {
-            if (cellColors[dgv].Count == 0)
+            if (!cellColors.ContainsKey(dgv) || cellColors[dgv] == null)
             {
                 cellColors[dgv] = new Dictionary<string, Color>();
 
@@ -1550,9 +1547,10 @@ namespace Hallbridger
                 }
             }
 
-            if (cellColors[cmpDgv].Count == 0)
+            if (!cellColors.ContainsKey(cmpDgv) || cellColors[cmpDgv] == null)
             {
                 cellColors[cmpDgv] = new Dictionary<string, Color>();
+
                 foreach (var key in cmpData.Keys)
                 {
                     cellColors[cmpDgv][key] = Color.Empty;
@@ -1600,30 +1598,37 @@ namespace Hallbridger
             }
         }
 
-        // auxiliary method to update the highlightability of data discrepancies
-        private void UpdateDataDiscrepancyHighlightability()
+        /* auxiliary method to update the highlighting of data discrepancies
+         * dgv: the just populated DataGridView;
+         * data: dictionary containing the values of dgv;
+         * compareDgv: DataGridView populated with compareData;
+         * compareData: dictionary containing the values to compare data with;
+         */
+        private void UpdateDataDiscrepancyHighlighting(DataGridView dgv, Dictionary<string, double?> data, DataGridView compareDgv, Dictionary<string, double?> compareData)
         {
-            // update flags for each data category
-            if (realHallStagecraftDataGridView.Rows.Count > 0 && hall3DModelStagecraftDataGridView.Rows.Count > 0)
+            // if both real and 3D hall data have already been loaded, update cell background colors based on data comparison
+            if (dgv.Rows.Count > 0 && compareDgv.Rows.Count > 0)
             {
-                stagecraftDataDiscrepancyHighlightable = true;
+                UpdateCellBackgroundColors(dgv, data, compareDgv, compareData);
+
+                if (automaticDiscrepancyHighlightingMenuEntry.Checked)
+                {
+                    ApplyCellBackgroundColors(dgv);
+                    ApplyCellBackgroundColors(compareDgv);
+                }
+
+                // enable "Highlight data discrepancies" checkbox if it's not already
+                if (!highlightDataDiscrepanciesCheckBox.Enabled)
+                {
+                    highlightDataDiscrepanciesCheckBox.Enabled = true;
+                }
             }
 
-            if (realHallLeftPanelsDataGridView.Rows.Count > 0 && hall3DModelLeftPanelsDataGridView.Rows.Count > 0)
+            // if discrepancies are highlightable, align "Highlight data discrepancies" checkbox state with "Automatic discrepancy highlighting" menu entry state
+            if (highlightDataDiscrepanciesCheckBox.Enabled)
             {
-                leftPanelDataDiscrepancyHighlightable = true;
+                highlightDataDiscrepanciesCheckBox.Checked = automaticDiscrepancyHighlightingMenuEntry.Checked;
             }
-
-            if (realHallRightPanelsDataGridView.Rows.Count > 0 && hall3DModelRightPanelsDataGridView.Rows.Count > 0)
-            {
-                rightPanelDataDiscrepancyHighlightable = true;
-            }
-
-            // enable/disable "Highlight data discrepancies" checkbox depending on whether there are data discrepancies that can be highlighted
-            highlightDataDiscrepanciesCheckBox.Enabled =
-                stagecraftDataDiscrepancyHighlightable ||
-                leftPanelDataDiscrepancyHighlightable ||
-                rightPanelDataDiscrepancyHighlightable;
         }
 
         // auxiliary method to check if the current configuration of open/close panels in the 3D hall matches one of those for which we have global RT values at disposal
@@ -1651,7 +1656,7 @@ namespace Hallbridger
                     currentHall3DModelPanelConfiguration = configuration.Key;
 
                     // select the first panel column of the current configuration in the 3D viewer (setting a list of entities to property Selection of the viewer doesn't highlight them, so we select only one entity)
-                    var currentPanelSet = panelConfigurations[currentHall3DModelPanelConfiguration];
+                    var currentPanelSet = configuration.Value;
 
                     if (hall3DModelLeftPanelControlUnitsComposition.TryGetValue(currentPanelSet.First(), out var globalIdList) && globalIdList.Count > 0)
                     {

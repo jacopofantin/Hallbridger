@@ -1,4 +1,5 @@
 ﻿using Hallbridger.Controls;
+using Microsoft.Ajax.Utilities;
 using System.Collections.Generic;
 using System.Data;
 using System.Windows.Forms;
@@ -368,12 +369,10 @@ namespace Hallbridger
             this.highlightDataDiscrepanciesCheckBox.AutoSize = true;
             this.highlightDataDiscrepanciesCheckBox.TabIndex = 5;
             this.highlightDataDiscrepanciesCheckBox.Text = "Highlight data discrepancies";
-            this.highlightDataDiscrepanciesCheckBox.Checked = true; // default: active
+            this.highlightDataDiscrepanciesCheckBox.Enabled = false; // initially disabled: there are no data to compare
+            this.highlightDataDiscrepanciesCheckBox.Checked = false; // initially unchecked: there are no data to compare
             this.highlightDataDiscrepanciesCheckBox.UseVisualStyleBackColor = true;
-            this.highlightDataDiscrepanciesCheckBox.Click += new System.EventHandler(this.HighlightDataDiscrepanciesCheckBox_CheckChanged);
-
-            // "Highlight data discrepancies" tooltip initialization
-            UpdateDataDiscrepancyHighlightability();
+            this.highlightDataDiscrepanciesCheckBox.Click += new System.EventHandler(this.HighlightDataDiscrepanciesCheckBox_Click);
 
             // title for global RT values DataGridView initialization
             this.globalRtDataGridViewLabel.Text = "T30 [s] global value trend";

@@ -288,7 +288,7 @@ namespace Hallbridger.Controls
 
             if (value == lastValidValue)
             {
-                // no change
+                // no value change
                 return;
             }
 
