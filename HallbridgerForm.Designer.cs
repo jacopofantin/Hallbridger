@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using Xbim.Presentation;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static Xbim.Presentation.DrawingControl3D;
 
 namespace Hallbridger
 {
@@ -372,7 +373,7 @@ namespace Hallbridger
             this.highlightDataDiscrepanciesCheckBox.Enabled = false; // initially disabled: there are no data to compare
             this.highlightDataDiscrepanciesCheckBox.Checked = false; // initially unchecked: there are no data to compare
             this.highlightDataDiscrepanciesCheckBox.UseVisualStyleBackColor = true;
-            this.highlightDataDiscrepanciesCheckBox.Click += new System.EventHandler(this.HighlightDataDiscrepanciesCheckBox_Click);
+            this.highlightDataDiscrepanciesCheckBox.Click += new System.EventHandler(this.HighlightDataDiscrepanciesCheckBox_Click); // not CheckedChanged because the event shouldn't be triggered when the checkbox state is changed programmatically when it aligns with the automatic discrepancy highlighting menu entry state after loading new data
 
             // title for global RT values DataGridView initialization
             this.globalRtDataGridViewLabel.Text = "T30 [s] global value trend";
@@ -431,8 +432,9 @@ namespace Hallbridger
             this.repositionButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular);
             this.repositionButton.AutoSize = false;
             this.repositionButton.UseVisualStyleBackColor = true;
+            this.repositionButton.Enabled = false; // initially disabled: there is no 3D model loaded to reposition
             this.repositionButton.Text = "Reposition";
-            this.repositionButton.Click += (s, e) => hall3DModelViewer.ReloadModel();
+            this.repositionButton.Click += (s, e) => hall3DModelViewer.ReloadModel(ModelRefreshOptions.ViewPreserveSelection);
 
             // "High performance mode" checkbox initialization
             this.highSpeedCheckBox.Name = "highSpeedCheckBox";

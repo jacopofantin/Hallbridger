@@ -1,8 +1,6 @@
 ﻿using Hallbridger.Controls;
-using Microsoft.Ajax.Utilities;
 using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,10 +13,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms; // for WinForms controls
 using System.Windows.Forms.Integration; // for ElementHost (WPF in WinForms)
-using System.Windows.Markup;
 using Xbim.Ifc;
 using Xbim.Ifc4.Interfaces;
 using Xbim.ModelGeometry.Scene;
+using static Xbim.Presentation.DrawingControl3D;
 
 
 namespace Hallbridger
@@ -527,6 +525,9 @@ namespace Hallbridger
 
             hall3DModelViewer.Model = hall3DModel;
             hall3DModelViewer.LoadGeometry(hall3DModel);
+
+            // enable "Reposition" button
+            repositionButton.Enabled = true;
         }
 
 
@@ -644,8 +645,8 @@ namespace Hallbridger
                     updateHall3DModelDialog.Filter = "3D model file (*.ifc)|*.ifc|All files (*.*)|*.*";
                     if (updateHall3DModelDialog.ShowDialog() == DialogResult.OK)
                     {
-                        string hall3DModelFileCheckPath = updateHall3DModelDialog.FileName;
-                        string hall3DModelFileExtension = Path.GetExtension(hall3DModelFileCheckPath).ToLowerInvariant();
+                        string modelFilePath = updateHall3DModelDialog.FileName;
+                        string hall3DModelFileExtension = Path.GetExtension(modelFilePath).ToLowerInvariant();
                         switch (hall3DModelFileExtension)
                         {
                             case ".ifc":
@@ -656,7 +657,7 @@ namespace Hallbridger
                         }
 
                         // import the 3D hall
-                        Load3DHall(hall3DModelFileCheckPath);
+                        Load3DHall(modelFilePath);
                     }
                 }
             }
@@ -685,6 +686,13 @@ namespace Hallbridger
 
         private async void ExportHall3DModelDataButton_OnClick(object sender, EventArgs e)
         {
+            // check if at least some 3D hall data have been previously loaded
+            if (hall3DModelStagecraftEquipmentPositions.Count == 0 && hall3DModelLeftPanelApertures.Count == 0 && hall3DModelRightPanelApertures.Count == 0)
+            {
+                // no 3D hall data loaded at all
+                System.Windows.Forms.MessageBox.Show("No 3D hall data loaded. Please load 3D hall data before exporting them.");
+                return;
+            }
             using (System.Windows.Forms.SaveFileDialog saveHall3DModelDataDialog = new System.Windows.Forms.SaveFileDialog())
             {
                 saveHall3DModelDataDialog.Title = "Export 3D hall data";
@@ -1144,7 +1152,7 @@ namespace Hallbridger
                                         hall3DModelStagecraftEquipmentPositions[unit] = positionValue;
                                     }
 
-                                    // refresh view
+                                    // refresh data view
                                     ViewLoadedData(hall3DModelStagecraftDataGridView, hall3DModelStagecraftEquipmentPositions, ConvertMillimetersToMeters, FormatMeters);
 
                                     // update data discrepancies highlighting
@@ -1206,7 +1214,14 @@ namespace Hallbridger
 
                         // commit the changes and save the 3D model
                         modelElementUpdate.Commit();
-                        temp3DModel.SaveAs(hall3DModelFilePath);
+                        temp3DModel.SaveAs(hall3DModelFilePath); // overwrite 3D model file
+                        hall3DModel = IfcStore.Open(hall3DModelFilePath); // update class-level reference
+
+                        // refresh 3D hall viewer
+                        hall3DModelViewer.ReloadModel(ModelRefreshOptions.ViewPreserveCameraPosition | ModelRefreshOptions.ViewPreserveSelection);
+
+                        // identify current panel configuration in the 3D hall, if possible, and highlight it in the global RT values DataGridView and in the 3D model
+                        IdentifyCurrent3DHallPanelConfiguration();
 
                         MessageBox.Show("Value successfully modified", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
@@ -1500,21 +1515,6 @@ namespace Hallbridger
             }
         }
 
-        // auxiliary method to store cell background colors of all rows in a DataGridView in the class-level dictionary (not a getter because it modifies the class-level dictionary without returning any value)
-        private void SaveCellBackgroundColors(DataGridView dgv)
-        {
-            if (!cellColors.ContainsKey(dgv) || cellColors[dgv] == null)
-            {
-                cellColors[dgv] = new Dictionary<string, Color>();
-            }
-
-            foreach (DataGridViewRow row in dgv.Rows)
-            {
-                string rowId = row.Cells[0].Value?.ToString();
-                cellColors[dgv][rowId] = row.DefaultCellStyle.BackColor;
-            }
-        }
-
         // auxiliary method to paint cell background of all rows of a DataGridView using the class-level dictionary of cell colors (not a setter because it modifies the DataGridView using the class-level dictionary and doesn't take the value to be set as input)
         private void ApplyCellBackgroundColors(DataGridView dgv)
         {
@@ -1559,23 +1559,21 @@ namespace Hallbridger
 
             foreach (var controlUnit in data.Keys)
             {
-                if (cmpData.ContainsKey(controlUnit) && data[controlUnit] != cmpData[controlUnit])
+                if (cmpData.ContainsKey(controlUnit) && data[controlUnit] != cmpData[controlUnit]
+                    && (cellColors[dgv][controlUnit] == Color.Empty || cellColors[cmpDgv][controlUnit] == Color.Empty))
                 {
-                    // discrepancy found
-                    if (cellColors[dgv][controlUnit] == Color.Empty || cellColors[cmpDgv][controlUnit] == Color.Empty)
+                    // new discrepancy found, generate a new random color and store it in the dictionary for both DataGridViews
+                    Color randomColor;
+                    lock (SharedRandom)
                     {
-                        // new discrepancy, generate a new random color and store it in the dictionary for both DataGridViews
-                        Color randomColor;
-                        lock (SharedRandom)
-                        {
-                            randomColor = Color.FromArgb(
-                                SharedRandom.Next(256),
-                                SharedRandom.Next(256),
-                                SharedRandom.Next(256));
-                        }
-                        cellColors[dgv][controlUnit] = randomColor;
-                        cellColors[cmpDgv][controlUnit] = randomColor;
+                        randomColor = Color.FromArgb(
+                            SharedRandom.Next(256),
+                            SharedRandom.Next(256),
+                            SharedRandom.Next(256));
                     }
+
+                    cellColors[dgv][controlUnit] = randomColor;
+                    cellColors[cmpDgv][controlUnit] = randomColor;
                 }
                 else
                 {
@@ -1606,11 +1604,13 @@ namespace Hallbridger
          */
         private void UpdateDataDiscrepancyHighlighting(DataGridView dgv, Dictionary<string, double?> data, DataGridView compareDgv, Dictionary<string, double?> compareData)
         {
-            // if both real and 3D hall data have already been loaded, update cell background colors based on data comparison
+            // proceed only if both real and 3D hall data have already been loaded
             if (dgv.Rows.Count > 0 && compareDgv.Rows.Count > 0)
             {
+                // update cell background colors based on data comparison
                 UpdateCellBackgroundColors(dgv, data, compareDgv, compareData);
 
+                // if "Automatic discrepancy highlighting" menu entry is checked, apply the new background colors to the DataGridView couple
                 if (automaticDiscrepancyHighlightingMenuEntry.Checked)
                 {
                     ApplyCellBackgroundColors(dgv);
@@ -1622,11 +1622,8 @@ namespace Hallbridger
                 {
                     highlightDataDiscrepanciesCheckBox.Enabled = true;
                 }
-            }
 
-            // if discrepancies are highlightable, align "Highlight data discrepancies" checkbox state with "Automatic discrepancy highlighting" menu entry state
-            if (highlightDataDiscrepanciesCheckBox.Enabled)
-            {
+                // align "Highlight data discrepancies" checkbox state with "Automatic discrepancy highlighting" menu entry state
                 highlightDataDiscrepanciesCheckBox.Checked = automaticDiscrepancyHighlightingMenuEntry.Checked;
             }
         }
@@ -1914,7 +1911,6 @@ namespace Hallbridger
         }
 
         // auxiliary methods for Moving element tab component layout
-
         private void PlaceGroupsAndSeparator_MovingElementsTab(int topMargin, int groupTitleHeight, int titleSpacing, int labelHeight, int labelSpacing, int groupSpacing, int separatorHeight, int startX, int availableWidth, int DataGridViewHeight)
         {
             // real hall group title
