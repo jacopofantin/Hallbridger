@@ -65,14 +65,14 @@
         <mxCell id="BEMqQ54XTOVEoY1YMbHV-4" edge="1" parent="1" source="BEMqQ54XTOVEoY1YMbHV-1" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BEMqQ54XTOVEoY1YMbHV-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Edit software&lt;div&gt;configuration&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="620" y="241" as="geometry" />
+        <mxCell id="BEMqQ54XTOVEoY1YMbHV-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View and edit&lt;div&gt;3D element properties&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="470" y="390" as="geometry" />
         </mxCell>
         <mxCell id="BEMqQ54XTOVEoY1YMbHV-5" edge="1" parent="1" source="BEMqQ54XTOVEoY1YMbHV-2" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BEMqQ54XTOVEoY1YMbHV-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View and edit&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;3D element properties&lt;/span&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="960" y="220" as="geometry" />
+        <mxCell id="BEMqQ54XTOVEoY1YMbHV-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Edit software&lt;div&gt;configuration&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="680" y="280" as="geometry" />
         </mxCell>
         <mxCell id="BEMqQ54XTOVEoY1YMbHV-6" edge="1" parent="1" source="BEMqQ54XTOVEoY1YMbHV-3" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
           <mxGeometry relative="1" as="geometry" />
@@ -83,20 +83,14 @@
         <mxCell id="EF3_EcGIwAVqZjthlrSo-3" edge="1" parent="1" source="EF3_EcGIwAVqZjthlrSo-1" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="EF3_EcGIwAVqZjthlrSo-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Reposition 3D model" vertex="1">
+        <mxCell id="EF3_EcGIwAVqZjthlrSo-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Enable high&lt;div&gt;performance mode&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="140" x="620" y="960" as="geometry" />
         </mxCell>
         <mxCell id="EF3_EcGIwAVqZjthlrSo-4" edge="1" parent="1" source="EF3_EcGIwAVqZjthlrSo-2" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="EF3_EcGIwAVqZjthlrSo-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Enable/disable high&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;performance mode&lt;/span&gt;" vertex="1">
+        <mxCell id="EF3_EcGIwAVqZjthlrSo-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Reposition 3D model" vertex="1">
           <mxGeometry height="70" width="140" x="860" y="1000" as="geometry" />
-        </mxCell>
-        <mxCell id="Kmg8SYfIZA-gEeTyy1M9-2" edge="1" parent="1" source="Kmg8SYfIZA-gEeTyy1M9-1" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="Kmg8SYfIZA-gEeTyy1M9-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Enable/disable&lt;div&gt;automatic data discrepancy highlighting&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="150" x="435" y="400" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
