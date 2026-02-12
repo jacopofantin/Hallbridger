@@ -1,6 +1,6 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.6 Chrome/140.0.7339.249 Electron/38.8.0 Safari/537.36" version="29.3.6">
   <diagram name="Seite-1" id="Msd-Bm0D9tB3GDbzTX9G">
-    <mxGraphModel dx="1042" dy="660" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1489" dy="943" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -11,13 +11,13 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="w_CBXuhd-G-ccotXqxhW-2" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="System" vertex="1">
-          <mxGeometry height="60" width="30" x="960" y="604" as="geometry" />
+          <mxGeometry height="60" width="30" x="1122" y="606" as="geometry" />
         </mxCell>
         <mxCell id="w_CBXuhd-G-ccotXqxhW-9" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Automatically load&lt;div&gt;and view real&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;hall data&lt;/span&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="1101" y="450" as="geometry" />
+          <mxGeometry height="70" width="140" x="1150" y="400" as="geometry" />
         </mxCell>
         <mxCell id="w_CBXuhd-G-ccotXqxhW-11" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Automatically load&lt;div&gt;and view&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;3D hall&lt;/span&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="1101" y="750" as="geometry" />
+          <mxGeometry height="70" width="140" x="1210" y="780" as="geometry" />
         </mxCell>
         <mxCell id="w_CBXuhd-G-ccotXqxhW-14" edge="1" parent="1" source="w_CBXuhd-G-ccotXqxhW-16" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-23">
           <mxGeometry relative="1" as="geometry" />
@@ -29,10 +29,10 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="w_CBXuhd-G-ccotXqxhW-16" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Operator" vertex="1">
-          <mxGeometry height="60" width="30" x="800" y="604" as="geometry" />
+          <mxGeometry height="60" width="30" x="990" y="606" as="geometry" />
         </mxCell>
-        <mxCell id="w_CBXuhd-G-ccotXqxhW-25" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manually load&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;and&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;view&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;real&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;hall data&lt;/span&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="895" y="750" as="geometry" />
+        <mxCell id="w_CBXuhd-G-ccotXqxhW-25" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manually load&lt;br&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); background-color: transparent;&quot;&gt;and view&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); background-color: transparent;&quot;&gt;3D hall&lt;/span&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="970" y="840" as="geometry" />
         </mxCell>
         <mxCell id="w_CBXuhd-G-ccotXqxhW-26" edge="1" parent="1" source="w_CBXuhd-G-ccotXqxhW-16" style="endArrow=none;html=1;rounded=0;" target="w_CBXuhd-G-ccotXqxhW-27" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
@@ -42,43 +42,61 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="w_CBXuhd-G-ccotXqxhW-27" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Export 3D hall data" vertex="1">
-          <mxGeometry height="70" width="140" x="480" y="550" as="geometry" />
+          <mxGeometry height="70" width="140" x="720" y="750" as="geometry" />
         </mxCell>
-        <mxCell id="w_CBXuhd-G-ccotXqxhW-23" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manually load&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;and view&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;3D hall&lt;/span&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="895" y="450" as="geometry" />
+        <mxCell id="w_CBXuhd-G-ccotXqxhW-23" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manually load&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;and&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;view&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;real&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;hall data&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="870" y="410" as="geometry" />
         </mxCell>
         <mxCell id="MQT5wChuDCbpVQIrtefK-10" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Show/hide data discrepancy highlighting" vertex="1">
-          <mxGeometry height="70" width="140" x="687" y="750" as="geometry" />
+          <mxGeometry height="70" width="140" x="380" y="584.5" as="geometry" />
         </mxCell>
         <mxCell id="OATdEhPqVr5iDjcs9std-2" edge="1" parent="1" source="OATdEhPqVr5iDjcs9std-1" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="OATdEhPqVr5iDjcs9std-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manually update&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;and view&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;3D hall&lt;/span&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="687" y="450" as="geometry" />
+          <mxGeometry height="70" width="140" x="660" y="550" as="geometry" />
         </mxCell>
         <mxCell id="MKTNONG3zTHpy_5Qijvv-3" edge="1" parent="1" source="MKTNONG3zTHpy_5Qijvv-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="MKTNONG3zTHpy_5Qijvv-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Automatically update&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;and view&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;3D hall&lt;/span&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="1101" y="599" as="geometry" />
+          <mxGeometry height="70" width="140" x="1274" y="601" as="geometry" />
         </mxCell>
         <mxCell id="BEMqQ54XTOVEoY1YMbHV-4" edge="1" parent="1" source="BEMqQ54XTOVEoY1YMbHV-1" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BEMqQ54XTOVEoY1YMbHV-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View and edit&lt;div&gt;3D element properties&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="480" y="450" as="geometry" />
+        <mxCell id="BEMqQ54XTOVEoY1YMbHV-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Edit software&lt;div&gt;configuration&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="620" y="241" as="geometry" />
         </mxCell>
         <mxCell id="BEMqQ54XTOVEoY1YMbHV-5" edge="1" parent="1" source="BEMqQ54XTOVEoY1YMbHV-2" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BEMqQ54XTOVEoY1YMbHV-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Edit software&lt;div&gt;configuration&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="480" y="650" as="geometry" />
+        <mxCell id="BEMqQ54XTOVEoY1YMbHV-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View and edit&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;3D element properties&lt;/span&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="960" y="220" as="geometry" />
         </mxCell>
         <mxCell id="BEMqQ54XTOVEoY1YMbHV-6" edge="1" parent="1" source="BEMqQ54XTOVEoY1YMbHV-3" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="BEMqQ54XTOVEoY1YMbHV-3" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View acoustic data" vertex="1">
-          <mxGeometry height="70" width="140" x="480" y="750" as="geometry" />
+          <mxGeometry height="70" width="140" x="440" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="EF3_EcGIwAVqZjthlrSo-3" edge="1" parent="1" source="EF3_EcGIwAVqZjthlrSo-1" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="EF3_EcGIwAVqZjthlrSo-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Reposition 3D model" vertex="1">
+          <mxGeometry height="70" width="140" x="620" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="EF3_EcGIwAVqZjthlrSo-4" edge="1" parent="1" source="EF3_EcGIwAVqZjthlrSo-2" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="EF3_EcGIwAVqZjthlrSo-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Enable/disable high&lt;br&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;performance mode&lt;/span&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="860" y="1000" as="geometry" />
+        </mxCell>
+        <mxCell id="Kmg8SYfIZA-gEeTyy1M9-2" edge="1" parent="1" source="Kmg8SYfIZA-gEeTyy1M9-1" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="w_CBXuhd-G-ccotXqxhW-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Kmg8SYfIZA-gEeTyy1M9-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Enable/disable&lt;div&gt;automatic data discrepancy highlighting&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="150" x="435" y="400" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
