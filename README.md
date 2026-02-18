@@ -1,6 +1,6 @@
 # Hallbridger
 
-This component enables communication between facility management systems (starting one is CURIO System - by Decima 1948, Padua, Italy -, the software installed in the multipurpose hall "Roberto de Silva" in Rho, Milan, Italy), and the 3D model of the theater.
+This component enables communication between facility management systems of multipurpose halls (starting one is CURIO System - by Decima 1948, Padua, Italy -, the software installed in the "Roberto de Silva" theater in Rho, Milan, Italy), and the 3D model of the theater.
 
 This readme file describes how the two input files (the one with real hall data and the one with the 3D hall) should be structured in order for them to be correctly read, and information about the configuration file (note: custom preferences should not be specified editing the configuration file. The user should navigate to the "Options" menu in the software interface and tweak the options in the "Configurations" window, instead. The hereby description has illustration and documentation purposes only).
 
