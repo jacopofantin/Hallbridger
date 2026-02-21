@@ -44,7 +44,7 @@ Section description:
 REAL HALL INPUT FILE
 
 - Related to timer controlled by section [RealHallFileCheck] of the INI file
-- Name: Fotografia_sala_CURIO (default)
+- Name: Real_hall_snapshot (default)
 - Allowed extensions: .txt
 - Location (relative path of directory where the main Hallbridger folder is placed in the theater PC): Hallbridger\IO_files\ (default)
 - Allowed data models (allowed facility management systems): CURIO data model
@@ -71,6 +71,6 @@ File description (data model -> extension):
 3D HALL INPUT FILE (3D model)
 
 - Related to timer controlled by section [Hall3DModelFileCheck] of the INI file
-- Name: model (default)
+- Name: 3D_hall_model (default)
 - Allowed extensions: .ifc
 - Location (relative path of directory where the main Hallbridger folder is placed in the theater PC): Hallbridger\IO_files\ (default)
